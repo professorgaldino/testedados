@@ -8,6 +8,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid black;
@@ -36,11 +37,12 @@
     <script>
         async function carregarDados() {
             try {
-                const response = await fetch('dados.json');
+                const response = await fetch('dados.json'); // Arquivo na mesma pasta
+                if (!response.ok) throw new Error('Erro ao carregar JSON');
                 const jsonData = await response.json();
                 processarDados(jsonData);
             } catch (error) {
-                console.error("Erro ao carregar os dados:", error);
+                console.error('Erro:', error);
             }
         }
 
@@ -48,7 +50,7 @@
             const tabela = document.getElementById("tabela").getElementsByTagName('tbody')[0];
             const chaves = Object.keys(json)[0].split(";;;;;");
             const valores = json[chaves[0]].split(";;");
-            
+
             valores.forEach((item, index) => {
                 const dados = item.split(";");
                 if (dados[0] === "1") { // Filtra pelo ID 1
@@ -61,6 +63,7 @@
             });
         }
 
+        // Carregar os dados ao abrir a página
         carregarDados();
     </script>
 </body>
