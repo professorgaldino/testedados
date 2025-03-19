@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados de Carlos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            font-size: 18px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Dados de Carlos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Idade</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo"></tbody>
+    </table>
+
+    <script>
+        function carregarDados(userId) {
+            fetch('dados.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Erro ao carregar os dados.");
+                    }
+                    return response.json();
+                })
+                .then(dados => {
+                    const usuario = dados.find(pessoa => pessoa.id === userId);
+                    if (usuario) {
+                        const tabela = document.getElementById("tabela-corpo");
+                        let linha = `<tr>
+                            <td>${usuario.id}</td>
+                            <td>${usuario.nome}</td>
+                            <td>${usuario.idade}</td>
+                        </tr>`;
+                        tabela.innerHTML = linha;
+                    } else {
+                        document.body.innerHTML += "<p>Usuário não encontrado.</p>";
+                    }
+                })
+                .catch(error => console.error("Erro ao carregar JSON:", error));
+        }
+
+        carregarDados(3);
+    </script>
+
+</body>
+</html>
