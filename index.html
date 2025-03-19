@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de Dados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            font-size: 18px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Dados em Tabela</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Idade</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo"></tbody>
+    </table>
+
+    <script src="dados.js"></script> <!-- Importando os dados -->
+    <script>
+        // Função para carregar os dados do JS e inserir na tabela
+        function carregarDados() {
+            const tabela = document.getElementById("tabela-corpo");
+
+            dados.forEach(pessoa => {
+                let linha = `<tr>
+                    <td>${pessoa.id}</td>
+                    <td>${pessoa.nome}</td>
+                    <td>${pessoa.idade}</td>
+                </tr>`;
+                tabela.innerHTML += linha;
+            });
+        }
+
+        // Carregar os dados ao abrir a página
+        carregarDados();
+    </script>
+
+</body>
+</html>
