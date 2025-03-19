@@ -38,25 +38,29 @@
         <tbody id="tabela-corpo"></tbody>
     </table>
 
-    <script src="dados.js"></script> <!-- Importando os dados -->
     <script>
-        // Aguardar um tempo para garantir que os dados foram carregados
-        setTimeout(() => {
-            if (typeof dados !== "undefined") {
-                const tabela = document.getElementById("tabela-corpo");
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch('dados.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Erro ao carregar os dados.");
+                    }
+                    return response.json();
+                })
+                .then(dados => {
+                    const tabela = document.getElementById("tabela-corpo");
 
-                dados.forEach(pessoa => {
-                    let linha = `<tr>
-                        <td>${pessoa.id}</td>
-                        <td>${pessoa.nome}</td>
-                        <td>${pessoa.idade}</td>
-                    </tr>`;
-                    tabela.innerHTML += linha;
-                });
-            } else {
-                console.error("Erro: Dados não carregados.");
-            }
-        }, 500); // Espera 500ms para garantir o carregamento
+                    dados.forEach(pessoa => {
+                        let linha = `<tr>
+                            <td>${pessoa.id}</td>
+                            <td>${pessoa.nome}</td>
+                            <td>${pessoa.idade}</td>
+                        </tr>`;
+                        tabela.innerHTML += linha;
+                    });
+                })
+                .catch(error => console.error("Erro ao carregar JSON:", error));
+        });
     </script>
 
 </body>
