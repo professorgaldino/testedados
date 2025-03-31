@@ -32,19 +32,23 @@
             botao.disabled = true;
             status.textContent = "Enviando...";
             
-            const { error } = await supabase
-                .from('avisos')
-                .insert([{ mensagem }]);
-            
-            if (error) {
-                status.textContent = `Erro ao enviar: ${error.message}`;
-                console.error(error);
-            } else {
+            try {
+                const { error } = await supabase
+                    .from('avisos')
+                    .insert([{ mensagem }]);
+                
+                if (error) {
+                    throw error;
+                }
+                
                 status.textContent = "Aviso enviado com sucesso!";
                 document.getElementById('mensagem').value = "";
+            } catch (err) {
+                status.textContent = `Erro ao enviar: ${err.message}`;
+                console.error("Erro ao conectar com o banco de dados:", err);
+            } finally {
+                botao.disabled = false;
             }
-            
-            botao.disabled = false;
         }
     </script>
 </body>
