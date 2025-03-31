@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Aviso</title>
+</head>
+<body>
+    <h2>Enviar Aviso</h2>
+    <input type="text" id="mensagem" placeholder="Digite seu aviso">
+    <button onclick="enviarAviso()">Enviar</button>
+    <p id="status"></p>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const SUPABASE_URL = "https://xgmigbwihqkitseskptg.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnbWlnYndpaHFraXRzZXNrcHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MTU2MTcsImV4cCI6MjA1ODk5MTYxN30.pfw5qmsV8S1IOng-iTH8FFdKDrPZCaLU5pdoN2YOceI";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function enviarAviso() {
+            const mensagem = document.getElementById('mensagem').value;
+            if (!mensagem) {
+                alert('Digite uma mensagem antes de enviar!');
+                return;
+            }
+
+            const { error } = await supabase
+                .from('avisos')
+                .insert([{ mensagem }]);
+
+            if (error) {
+                document.getElementById('status').textContent = "Erro ao enviar!";
+                console.error(error);
+            } else {
+                document.getElementById('status').textContent = "Aviso enviado!";
+                document.getElementById('mensagem').value = "";
+            }
+        }
+    </script>
+</body>
+</html>
