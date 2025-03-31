@@ -8,7 +8,7 @@
 <body>
     <h2>Enviar Aviso</h2>
     <input type="text" id="mensagem" placeholder="Digite seu aviso">
-    <button onclick="enviarAviso()">Enviar</button>
+    <button id="botao" onclick="enviarAviso()">Enviar</button>
     <p id="status"></p>
 
     <script type="module">
@@ -20,23 +20,31 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function enviarAviso() {
-            const mensagem = document.getElementById('mensagem').value;
+            const mensagem = document.getElementById('mensagem').value.trim();
+            const botao = document.getElementById('botao');
+            const status = document.getElementById('status');
+            
             if (!mensagem) {
                 alert('Digite uma mensagem antes de enviar!');
                 return;
             }
-
+            
+            botao.disabled = true;
+            status.textContent = "Enviando...";
+            
             const { error } = await supabase
                 .from('avisos')
                 .insert([{ mensagem }]);
-
+            
             if (error) {
-                document.getElementById('status').textContent = "Erro ao enviar!";
+                status.textContent = `Erro ao enviar: ${error.message}`;
                 console.error(error);
             } else {
-                document.getElementById('status').textContent = "Aviso enviado!";
+                status.textContent = "Aviso enviado com sucesso!";
                 document.getElementById('mensagem').value = "";
             }
+            
+            botao.disabled = false;
         }
     </script>
 </body>
