@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visualizar Boletins</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2259f2;
+      margin-top: 20px;
+    }
+
+    .iframes {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+
+    @media (min-width: 992px) {
+      .iframes {
+        flex-direction: row;
+      }
+
+      iframe {
+        width: 50%;
+        height: 90vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Visualização de Boletins</h1>
+
+  <div class="iframes">
+    <iframe src="a1.html" title="Boletim A1"></iframe>
+    <iframe src="a2.html" title="Boletim A2"></iframe>
+  </div>
+
+</body>
+</html>
