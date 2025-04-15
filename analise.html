@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Análise de Notas Vermelhas</title>
+  <title>Todas as Notas por Aluno</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background: #f9f9f9;
+      background: #f5f5f5;
       color: #333;
     }
 
@@ -27,119 +27,99 @@
       font-size: 24px;
     }
 
-    canvas {
-      max-width: 100%;
-      margin: 20px 0;
+    .aluno {
       background: #fff;
-      border-radius: 8px;
-      padding: 10px;
-    }
-
-    .materia {
+      border-radius: 10px;
+      padding: 15px;
       margin-bottom: 20px;
-      padding: 10px;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
     }
 
-    .materia h2 {
+    .aluno h2 {
+      margin-bottom: 10px;
       font-size: 18px;
-      color: #c00;
+      color: #2259f2;
     }
 
-    ul {
-      margin-top: 5px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    .verde {
+      background-color: #c8f7c5;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .vermelho {
+      background-color: #fbcaca;
+      color: #c62828;
+      font-weight: bold;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
   <header>
     <img src="logoescola.png" alt="Logo da Escola" />
-    <h1>Análise de Notas Vermelhas (Notas < 5)</h1>
+    <h1>Notas por Aluno e Disciplina (Destaque para Notas < 5)</h1>
   </header>
-
-  <canvas id="graficoNotas"></canvas>
 
   <div id="resultado"></div>
 
   <script>
-    async function carregarDados() {
+    async function carregarNotas() {
       try {
         const response = await fetch("dados1.json");
         const dados = await response.json();
-
-        const analise = {};
+        const resultadoDiv = document.getElementById("resultado");
 
         for (const alunoId in dados) {
           const aluno = dados[alunoId];
-          for (const disciplina in aluno) {
-            const nota = aluno[disciplina]["notas"]?.[0];
+          const container = document.createElement("div");
+          container.className = "aluno";
 
-            // Ignora valores não numéricos
-            if (!isNaN(nota) && Number(nota) < 5) {
-              if (!analise[disciplina]) {
-                analise[disciplina] = {
-                  quantidade: 0,
-                  alunos: []
-                };
-              }
-
-              analise[disciplina].quantidade++;
-              analise[disciplina].alunos.push(alunoId);
-            }
-          }
-        }
-
-        // Criar gráfico com Chart.js
-        const ctx = document.getElementById("graficoNotas").getContext("2d");
-        const labels = Object.keys(analise);
-        const data = labels.map(materia => analise[materia].quantidade);
-
-        new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [{
-              label: "Notas Vermelhas (< 5)",
-              data: data,
-              backgroundColor: "#e63946"
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: false },
-              title: {
-                display: true,
-                text: "Quantidade de Notas Vermelhas por Disciplina"
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                precision: 0
-              }
-            }
-          }
-        });
-
-        // Criar listagem por matéria
-        const resultadoDiv = document.getElementById("resultado");
-        for (let materia in analise) {
-          const bloco = document.createElement("div");
-          bloco.className = "materia";
-
-          bloco.innerHTML = `
-            <h2>${materia}</h2>
-            <p>Quantidade de notas vermelhas: <strong>${analise[materia].quantidade}</strong></p>
-            <p>Números de chamada:</p>
-            <ul>${analise[materia].alunos.map(id => `<li>${id}</li>`).join('')}</ul>
+          let tabela = `
+            <h2>Aluno ${alunoId}</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Disciplina</th>
+                  <th>Nota</th>
+                </tr>
+              </thead>
+              <tbody>
           `;
 
-          resultadoDiv.appendChild(bloco);
+          for (const disciplina in aluno) {
+            const nota = aluno[disciplina]["notas"]?.[0];
+            if (!isNaN(nota)) {
+              const valor = parseFloat(nota);
+              const classe = valor < 5 ? "vermelho" : "verde";
+              tabela += `
+                <tr>
+                  <td>${disciplina}</td>
+                  <td class="${classe}">${valor}</td>
+                </tr>
+              `;
+            }
+          }
+
+          tabela += `
+              </tbody>
+            </table>
+          `;
+
+          container.innerHTML = tabela;
+          resultadoDiv.appendChild(container);
         }
 
       } catch (erro) {
@@ -148,7 +128,7 @@
       }
     }
 
-    carregarDados();
+    carregarNotas();
   </script>
 
 </body>
