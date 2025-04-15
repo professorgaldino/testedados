@@ -24,6 +24,42 @@
       border-radius: 8px;
       padding: 10px;
     }
+
+    /* Estilo para o popup */
+    #popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    #popup h2 {
+      margin-top: 0;
+    }
+
+    #popup ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    #popup ul li {
+      margin-bottom: 5px;
+    }
+
+    #popup .close-btn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      background-color: #e63946;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -32,26 +68,47 @@
   <h1>Comparativo de Notas por Disciplina</h1>
   <canvas id="graficoComparativo"></canvas>
 
+  <!-- Popup para exibir os nomes dos alunos -->
+  <div id="popup">
+    <h2 id="popupTitle"></h2>
+    <ul id="popupList"></ul>
+    <button class="close-btn" onclick="fecharPopup()">Fechar</button>
+  </div>
+
   <script>
+    // Função para fechar o popup
+    function fecharPopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
     async function carregarDados() {
       try {
-        const response = await fetch("dados1.json");
-        const dados = await response.json();
+        const responseNotas = await fetch("dados1.json");
+        const dadosNotas = await responseNotas.json();
+
+        const responseAlunos = await fetch("alunos.json");
+        const dadosAlunos = await responseAlunos.json();
 
         const disciplinas = {};
-        for (const alunoId in dados) {
-          const aluno = dados[alunoId];
+        const alunosPorCategoria = {}; // { 'Disciplina': { 'vermelhas': [nomes], 'satisfatorias': [nomes] } }
+
+        for (const alunoId in dadosNotas) {
+          const aluno = dadosNotas[alunoId];
           for (const disciplina in aluno) {
             const nota = aluno[disciplina]["notas"]?.[0];
             if (!isNaN(nota)) {
               const valor = parseFloat(nota);
               if (!disciplinas[disciplina]) {
                 disciplinas[disciplina] = { satisfatorias: 0, vermelhas: 0 };
+                alunosPorCategoria[disciplina] = { satisfatorias: [], vermelhas: [] };
               }
+              const nomeAluno = dadosAlunos[alunoId]?.nome || "Desconhecido";
               if (valor < 5) {
                 disciplinas[disciplina].vermelhas++;
+                alunosPorCategoria[disciplina].vermelhas.push(nomeAluno);
               } else {
                 disciplinas[disciplina].satisfatorias++;
+                alunosPorCategoria[disciplina].satisfatorias.push(nomeAluno);
               }
             }
           }
@@ -62,7 +119,7 @@
         const dadosSatisfatorias = labels.map(disc => disciplinas[disc].satisfatorias);
 
         const ctx = document.getElementById("graficoComparativo").getContext("2d");
-        new Chart(ctx, {
+        const grafico = new Chart(ctx, {
           type: "bar",
           data: {
             labels: labels,
@@ -91,6 +148,29 @@
               y: {
                 beginAtZero: true,
                 precision: 0
+              }
+            },
+            onClick: (evt, elements) => {
+              if (elements.length > 0) {
+                const element = elements[0];
+                const datasetIndex = element.datasetIndex;
+                const index = element.index;
+                const disciplina = labels[index];
+                const categoria = datasetIndex === 0 ? 'vermelhas' : 'satisfatorias';
+                const alunos = alunosPorCategoria[disciplina][categoria];
+
+                // Atualiza o conteúdo do popup
+                document.getElementById('popupTitle').textContent = `Alunos com notas ${categoria === 'vermelhas' ? '< 5' : '≥ 5'} em ${disciplina}`;
+                const lista = document.getElementById('popupList');
+                lista.innerHTML = '';
+                alunos.forEach(nome => {
+                  const li = document.createElement('li');
+                  li.textContent = nome;
+                  lista.appendChild(li);
+                });
+
+                // Exibe o popup
+                document.getElementById('popup').style.display = 'block';
               }
             }
           }
