@@ -18,6 +18,27 @@
       margin-top: 20px;
     }
 
+    .botao-analise {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .botao-analise a {
+      background-color: #2259f2;
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    .botao-analise a:hover {
+      background-color: #1a47c4;
+    }
+
     .iframes {
       display: flex;
       flex-direction: column;
@@ -49,6 +70,10 @@
 <body>
 
   <h1>Visualização de Boletins</h1>
+
+  <div class="botao-analise">
+    <a href="analise.html" target="_blank">Ver Análise de Notas Vermelhas</a>
+  </div>
 
   <div class="iframes">
     <iframe src="a1.html" title="Boletim A1"></iframe>
