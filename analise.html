@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Todas as Notas por Aluno</title>
+  <title>Gráfico Geral de Notas por Disciplina</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,108 +27,96 @@
       font-size: 24px;
     }
 
-    .aluno {
+    canvas {
+      max-width: 100%;
+      margin: 20px 0;
       background: #fff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
-    }
-
-    .aluno h2 {
-      margin-bottom: 10px;
-      font-size: 18px;
-      color: #2259f2;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-
-    .verde {
-      background-color: #c8f7c5;
-      color: #2e7d32;
-      font-weight: bold;
-    }
-
-    .vermelho {
-      background-color: #fbcaca;
-      color: #c62828;
-      font-weight: bold;
+      border-radius: 8px;
+      padding: 10px;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
   <header>
     <img src="logoescola.png" alt="Logo da Escola" />
-    <h1>Notas por Aluno e Disciplina (Destaque para Notas < 5)</h1>
+    <h1>Distribuição Geral de Notas por Disciplina</h1>
   </header>
 
-  <div id="resultado"></div>
+  <canvas id="graficoGeral"></canvas>
 
   <script>
-    async function carregarNotas() {
+    async function carregarDados() {
       try {
         const response = await fetch("dados1.json");
         const dados = await response.json();
-        const resultadoDiv = document.getElementById("resultado");
 
+        const disciplinas = {};
         for (const alunoId in dados) {
           const aluno = dados[alunoId];
-          const container = document.createElement("div");
-          container.className = "aluno";
-
-          let tabela = `
-            <h2>Aluno ${alunoId}</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Disciplina</th>
-                  <th>Nota</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-
           for (const disciplina in aluno) {
             const nota = aluno[disciplina]["notas"]?.[0];
             if (!isNaN(nota)) {
               const valor = parseFloat(nota);
-              const classe = valor < 5 ? "vermelho" : "verde";
-              tabela += `
-                <tr>
-                  <td>${disciplina}</td>
-                  <td class="${classe}">${valor}</td>
-                </tr>
-              `;
+              if (!disciplinas[disciplina]) {
+                disciplinas[disciplina] = { verde: 0, vermelho: 0 };
+              }
+              if (valor < 5) {
+                disciplinas[disciplina].vermelho++;
+              } else {
+                disciplinas[disciplina].verde++;
+              }
             }
           }
-
-          tabela += `
-              </tbody>
-            </table>
-          `;
-
-          container.innerHTML = tabela;
-          resultadoDiv.appendChild(container);
         }
+
+        const labels = Object.keys(disciplinas);
+        const dadosVermelhos = labels.map(disc => disciplinas[disc].vermelho);
+        const dadosVerdes = labels.map(disc => disciplinas[disc].verde);
+
+        const ctx = document.getElementById("graficoGeral").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Notas < 5",
+                data: dadosVermelhos,
+                backgroundColor: "#e63946"
+              },
+              {
+                label: "Notas ≥ 5",
+                data: dadosVerdes,
+                backgroundColor: "#2a9d8f"
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: "Distribuição de Notas por Disciplina"
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                precision: 0
+              }
+            }
+          }
+        });
 
       } catch (erro) {
         console.error("Erro ao carregar dados:", erro);
-        document.getElementById("resultado").innerText = "Erro ao carregar os dados.";
+        document.body.innerHTML += "<p>Erro ao carregar os dados.</p>";
       }
     }
 
-    carregarNotas();
+    carregarDados();
   </script>
 
 </body>
