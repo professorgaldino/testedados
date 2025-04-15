@@ -11,18 +11,30 @@
       background: #f9f9f9;
       color: #333;
     }
+
     header {
       display: flex;
       align-items: center;
       margin-bottom: 20px;
     }
+
     header img {
       height: 60px;
       margin-right: 20px;
     }
+
     h1 {
       font-size: 24px;
     }
+
+    canvas {
+      max-width: 100%;
+      margin: 20px 0;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
     .materia {
       margin-bottom: 20px;
       padding: 10px;
@@ -30,14 +42,17 @@
       border-radius: 8px;
       background: #fff;
     }
+
     .materia h2 {
       font-size: 18px;
       color: #c00;
     }
+
     ul {
       margin-top: 5px;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -45,6 +60,8 @@
     <img src="logoescola.png" alt="Logo da Escola" />
     <h1>Análise de Notas Vermelhas (Notas < 5)</h1>
   </header>
+
+  <canvas id="graficoNotas"></canvas>
 
   <div id="resultado"></div>
 
@@ -72,6 +89,40 @@
           });
         });
 
+        // Gráfico
+        const ctx = document.getElementById("graficoNotas").getContext("2d");
+        const labels = Object.keys(analise);
+        const data = labels.map(materia => analise[materia].quantidade);
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Notas Vermelhas (< 5)",
+              data: data,
+              backgroundColor: "#e63946"
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: "Quantidade de Notas Vermelhas por Disciplina"
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                precision: 0
+              }
+            }
+          }
+        });
+
+        // Listagem
         const resultadoDiv = document.getElementById("resultado");
         for (let materia in analise) {
           const bloco = document.createElement("div");
@@ -80,12 +131,13 @@
           bloco.innerHTML = `
             <h2>${materia}</h2>
             <p>Quantidade de notas vermelhas: <strong>${analise[materia].quantidade}</strong></p>
-            <p>IDs dos alunos com nota vermelha:</p>
+            <p>Números de chamada dos alunos:</p>
             <ul>${analise[materia].alunos.map(id => `<li>${id}</li>`).join('')}</ul>
           `;
 
           resultadoDiv.appendChild(bloco);
         }
+
       } catch (erro) {
         console.error("Erro ao carregar dados:", erro);
         document.getElementById("resultado").innerText = "Erro ao carregar os dados.";
