@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Alunos com Notas Vermelhas</title>
+  <title>Comparativo de Notas por Disciplina</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,81 +17,84 @@
       margin-bottom: 20px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    canvas {
+      max-width: 100%;
+      margin: 20px 0;
       background: #fff;
       border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
       padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-
-    th {
-      background-color: #f0f0f0;
-    }
-
-    .vermelho {
-      background-color: #fbcaca;
-      color: #c62828;
-      font-weight: bold;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <h1>Alunos com Notas Vermelhas</h1>
-  <table id="tabelaVermelhas">
-    <thead>
-      <tr>
-        <th>Nº</th>
-        <th>Nome</th>
-        <th>Disciplina</th>
-        <th>Nota</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Linhas serão inseridas aqui -->
-    </tbody>
-  </table>
+  <h1>Comparativo de Notas por Disciplina</h1>
+  <canvas id="graficoComparativo"></canvas>
 
   <script>
     async function carregarDados() {
       try {
-        const [resNotas, resAlunos] = await Promise.all([
-          fetch("dados1.json"),
-          fetch("alunos.json")
-        ]);
+        const response = await fetch("dados1.json");
+        const dados = await response.json();
 
-        const dadosNotas = await resNotas.json();
-        const dadosAlunos = await resAlunos.json();
-
-        const tbody = document.querySelector("#tabelaVermelhas tbody");
-
-        for (const numero in dadosNotas) {
-          const alunoNotas = dadosNotas[numero];
-          const alunoInfo = dadosAlunos[numero];
-
-          if (!alunoInfo) continue;
-
-          for (const disciplina in alunoNotas) {
-            const nota = alunoNotas[disciplina]["notas"]?.[0];
-            if (!isNaN(nota) && parseFloat(nota) < 5) {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${numero}</td>
-                <td>${alunoInfo.nome}</td>
-                <td>${disciplina}</td>
-                <td class="vermelho">${nota}</td>
-              `;
-              tbody.appendChild(tr);
+        const disciplinas = {};
+        for (const alunoId in dados) {
+          const aluno = dados[alunoId];
+          for (const disciplina in aluno) {
+            const nota = aluno[disciplina]["notas"]?.[0];
+            if (!isNaN(nota)) {
+              const valor = parseFloat(nota);
+              if (!disciplinas[disciplina]) {
+                disciplinas[disciplina] = { satisfatorias: 0, vermelhas: 0 };
+              }
+              if (valor < 5) {
+                disciplinas[disciplina].vermelhas++;
+              } else {
+                disciplinas[disciplina].satisfatorias++;
+              }
             }
           }
         }
+
+        const labels = Object.keys(disciplinas);
+        const dadosVermelhas = labels.map(disc => disciplinas[disc].vermelhas);
+        const dadosSatisfatorias = labels.map(disc => disciplinas[disc].satisfatorias);
+
+        const ctx = document.getElementById("graficoComparativo").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Notas < 5",
+                data: dadosVermelhas,
+                backgroundColor: "#e63946"
+              },
+              {
+                label: "Notas ≥ 5",
+                data: dadosSatisfatorias,
+                backgroundColor: "#2a9d8f"
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: "Comparativo de Notas por Disciplina"
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                precision: 0
+              }
+            }
+          }
+        });
 
       } catch (erro) {
         console.error("Erro ao carregar dados:", erro);
