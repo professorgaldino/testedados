@@ -73,23 +73,27 @@
 
         const analise = {};
 
-        dados.forEach(aluno => {
-          aluno.disciplinas.forEach(disciplina => {
-            if (disciplina.nota < 5) {
-              const nomeMateria = disciplina.nome;
-              if (!analise[nomeMateria]) {
-                analise[nomeMateria] = {
+        for (const alunoId in dados) {
+          const aluno = dados[alunoId];
+          for (const disciplina in aluno) {
+            const nota = aluno[disciplina]["notas"]?.[0];
+
+            // Ignora valores não numéricos
+            if (!isNaN(nota) && Number(nota) < 5) {
+              if (!analise[disciplina]) {
+                analise[disciplina] = {
                   quantidade: 0,
                   alunos: []
                 };
               }
-              analise[nomeMateria].quantidade++;
-              analise[nomeMateria].alunos.push(aluno.id);
-            }
-          });
-        });
 
-        // Gráfico
+              analise[disciplina].quantidade++;
+              analise[disciplina].alunos.push(alunoId);
+            }
+          }
+        }
+
+        // Criar gráfico com Chart.js
         const ctx = document.getElementById("graficoNotas").getContext("2d");
         const labels = Object.keys(analise);
         const data = labels.map(materia => analise[materia].quantidade);
@@ -122,7 +126,7 @@
           }
         });
 
-        // Listagem
+        // Criar listagem por matéria
         const resultadoDiv = document.getElementById("resultado");
         for (let materia in analise) {
           const bloco = document.createElement("div");
@@ -131,7 +135,7 @@
           bloco.innerHTML = `
             <h2>${materia}</h2>
             <p>Quantidade de notas vermelhas: <strong>${analise[materia].quantidade}</strong></p>
-            <p>Números de chamada dos alunos:</p>
+            <p>Números de chamada:</p>
             <ul>${analise[materia].alunos.map(id => `<li>${id}</li>`).join('')}</ul>
           `;
 
