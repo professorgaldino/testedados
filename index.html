@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema de Alunos</title>
+  <title>Debug Supabase</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
@@ -16,23 +16,36 @@
 
 <button onclick="inserirAluno()">Inserir</button>
 <button onclick="atualizarAluno()">Atualizar</button>
+<button onclick="listarAlunos()">Listar</button>
 
 <hr>
 
-<h2>Lista de Alunos</h2>
-<button onclick="listarAlunos()">Carregar</button>
+<h2>Resultado</h2>
+<pre id="debug" style="background:#000;color:#0f0;padding:10px;"></pre>
+
+<hr>
 
 <div id="lista"></div>
 
 <script>
 const supabaseUrl = 'https://qxaqyyxslckjrpavydnx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0';
+const supabaseKey = 'SUA_CHAVE_AQUI'; // coloque sua chave
 
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+// 🔹 FUNÇÃO DEBUG
+function mostrarDebug(titulo, data, error) {
+  document.getElementById('debug').textContent =
+    titulo + "\n\n" +
+    "DATA:\n" + JSON.stringify(data, null, 2) + "\n\n" +
+    "ERROR:\n" + JSON.stringify(error, null, 2);
+
+  console.log(titulo, data, error);
+}
+
 // 🔹 INSERIR
 async function inserirAluno() {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('alunos')
     .insert([
       {
@@ -43,63 +56,47 @@ async function inserirAluno() {
       }
     ]);
 
-  if (error) {
-    alert('Erro ao inserir');
-    console.error(error);
-  } else {
-    alert('Aluno inserido!');
-    listarAlunos();
-  }
+  mostrarDebug("INSERT", data, error);
 }
 
 // 🔹 LISTAR
 async function listarAlunos() {
   const { data, error } = await supabase
     .from('alunos')
-    .select('*')
-    .order('nome_completo');
+    .select('*');
 
-  if (error) {
-    console.error(error);
-    return;
+  mostrarDebug("SELECT", data, error);
+
+  if (data) {
+    let html = '';
+
+    data.forEach(aluno => {
+      html += `
+        <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+          <b>${aluno.nome_completo}</b><br>
+          RA: ${aluno.ra}<br>
+          Sala: ${aluno.sala}<br>
+        </div>
+      `;
+    });
+
+    document.getElementById('lista').innerHTML = html;
   }
-
-  let html = '';
-
-  data.forEach(aluno => {
-    html += `
-      <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-        <img src="${aluno.foto_url || ''}" width="80"><br>
-        <b>${aluno.nome_completo}</b><br>
-        RA: ${aluno.ra}<br>
-        Sala: ${aluno.sala}<br>
-      </div>
-    `;
-  });
-
-  document.getElementById('lista').innerHTML = html;
 }
 
 // 🔹 ATUALIZAR
 async function atualizarAluno() {
   const ra = document.getElementById('ra').value;
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('alunos')
     .update({
       nome_completo: document.getElementById('nome').value,
-      sala: document.getElementById('sala').value,
-      foto_url: document.getElementById('foto').value
+      sala: document.getElementById('sala').value
     })
     .eq('ra', ra);
 
-  if (error) {
-    alert('Erro ao atualizar');
-    console.error(error);
-  } else {
-    alert('Aluno atualizado!');
-    listarAlunos();
-  }
+  mostrarDebug("UPDATE", data, error);
 }
 </script>
 
