@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema Completo de Alunos</title>
+  <title>Sistema de Alunos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
@@ -21,6 +21,7 @@
 <button onclick="inserirAluno()">Inserir</button>
 <button onclick="atualizarAluno()">Atualizar</button>
 <button onclick="listarAlunos()">Listar</button>
+<button onclick="teste()">TESTE DIRETO</button>
 
 <hr>
 
@@ -29,7 +30,6 @@
 
 <hr>
 
-<h2>Lista de Alunos</h2>
 <div id="lista"></div>
 
 <script>
@@ -39,33 +39,62 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // DEBUG
-function mostrarDebug(titulo, data, error) {
+function debug(titulo, data, error) {
   document.getElementById('debug').textContent =
-    titulo + "\n\n" +
-    "DATA:\n" + JSON.stringify(data, null, 2) + "\n\n" +
-    "ERROR:\n" + JSON.stringify(error, null, 2);
+    titulo + "\n\nDATA:\n" + JSON.stringify(data, null, 2) +
+    "\n\nERROR:\n" + JSON.stringify(error, null, 2);
 
   console.log(titulo, data, error);
 }
 
-// INSERIR
-async function inserirAluno() {
+// TESTE DIRETO
+async function teste() {
   const { data, error } = await supabase
     .from('alunos')
-    .insert([
-      {
-        ra: document.getElementById('ra').value,
-        nome_completo: document.getElementById('nome').value,
-        data_nascimento: document.getElementById('data').value || null,
-        tutor: document.getElementById('tutor').value || null,
-        eletiva_semestre_1: document.getElementById('eletiva1').value || null,
-        eletiva_semestre_2: document.getElementById('eletiva2').value || null,
-        sala: document.getElementById('sala').value || null,
-        foto_url: document.getElementById('foto').value || null
-      }
-    ]);
+    .insert([{ ra: "999", nome_completo: "Teste Supabase" }])
+    .select();
 
-  mostrarDebug("INSERT", data, error);
+  debug("TESTE INSERT", data, error);
+
+  if (error) {
+    alert("Erro: " + error.message);
+  } else {
+    alert("Teste funcionou!");
+  }
+}
+
+// INSERIR
+async function inserirAluno() {
+  const ra = document.getElementById('ra').value.trim();
+  const nome = document.getElementById('nome').value.trim();
+
+  if (!ra || !nome) {
+    alert("RA e Nome são obrigatórios");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from('alunos')
+    .insert([{
+      ra: ra,
+      nome_completo: nome,
+      data_nascimento: document.getElementById('data').value || null,
+      tutor: document.getElementById('tutor').value || null,
+      eletiva_semestre_1: document.getElementById('eletiva1').value || null,
+      eletiva_semestre_2: document.getElementById('eletiva2').value || null,
+      sala: document.getElementById('sala').value || null,
+      foto_url: document.getElementById('foto').value || null
+    }])
+    .select();
+
+  debug("INSERT", data, error);
+
+  if (error) {
+    alert("Erro ao inserir: " + error.message);
+  } else {
+    alert("Aluno inserido!");
+    listarAlunos();
+  }
 }
 
 // LISTAR
@@ -75,7 +104,7 @@ async function listarAlunos() {
     .select('*')
     .order('nome_completo');
 
-  mostrarDebug("SELECT", data, error);
+  debug("SELECT", data, error);
 
   if (!data) return;
 
@@ -88,11 +117,10 @@ async function listarAlunos() {
         <b>${aluno.nome_completo}</b><br>
         RA: ${aluno.ra}<br>
         Sala: ${aluno.sala || '-'}<br>
-        Data Nasc.: ${aluno.data_nascimento || '-'}<br>
+        Data: ${aluno.data_nascimento || '-'}<br>
         Tutor: ${aluno.tutor || '-'}<br>
         Eletiva 1: ${aluno.eletiva_semestre_1 || '-'}<br>
         Eletiva 2: ${aluno.eletiva_semestre_2 || '-'}<br>
-        Criado em: ${aluno.criado_em || '-'}
       </div>
     `;
   });
@@ -102,12 +130,17 @@ async function listarAlunos() {
 
 // ATUALIZAR
 async function atualizarAluno() {
-  const ra = document.getElementById('ra').value;
+  const ra = document.getElementById('ra').value.trim();
+
+  if (!ra) {
+    alert("Informe o RA");
+    return;
+  }
 
   const { data, error } = await supabase
     .from('alunos')
     .update({
-      nome_completo: document.getElementById('nome').value,
+      nome_completo: document.getElementById('nome').value || null,
       data_nascimento: document.getElementById('data').value || null,
       tutor: document.getElementById('tutor').value || null,
       eletiva_semestre_1: document.getElementById('eletiva1').value || null,
@@ -115,9 +148,19 @@ async function atualizarAluno() {
       sala: document.getElementById('sala').value || null,
       foto_url: document.getElementById('foto').value || null
     })
-    .eq('ra', ra);
+    .eq('ra', ra)
+    .select();
 
-  mostrarDebug("UPDATE", data, error);
+  debug("UPDATE", data, error);
+
+  if (error) {
+    alert("Erro ao atualizar: " + error.message);
+  } else if (data.length === 0) {
+    alert("RA não encontrado");
+  } else {
+    alert("Atualizado com sucesso!");
+    listarAlunos();
+  }
 }
 </script>
 
