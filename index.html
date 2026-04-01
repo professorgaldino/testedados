@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Debug Supabase</title>
+  <title>Sistema Completo de Alunos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
@@ -11,6 +11,10 @@
 
 <input id="ra" placeholder="RA"><br>
 <input id="nome" placeholder="Nome completo"><br>
+<input id="data" type="date"><br>
+<input id="tutor" placeholder="Tutor"><br>
+<input id="eletiva1" placeholder="Eletiva 1º semestre"><br>
+<input id="eletiva2" placeholder="Eletiva 2º semestre"><br>
 <input id="sala" placeholder="Sala"><br>
 <input id="foto" placeholder="Link da foto"><br><br>
 
@@ -20,20 +24,21 @@
 
 <hr>
 
-<h2>Resultado</h2>
+<h2>Debug</h2>
 <pre id="debug" style="background:#000;color:#0f0;padding:10px;"></pre>
 
 <hr>
 
+<h2>Lista de Alunos</h2>
 <div id="lista"></div>
 
 <script>
 const supabaseUrl = 'https://qxaqyyxslckjrpavydnx.supabase.co';
-const supabaseKey = 'SUA_CHAVE_AQUI'; // coloque sua chave
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0';
 
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// 🔹 FUNÇÃO DEBUG
+// DEBUG
 function mostrarDebug(titulo, data, error) {
   document.getElementById('debug').textContent =
     titulo + "\n\n" +
@@ -43,7 +48,7 @@ function mostrarDebug(titulo, data, error) {
   console.log(titulo, data, error);
 }
 
-// 🔹 INSERIR
+// INSERIR
 async function inserirAluno() {
   const { data, error } = await supabase
     .from('alunos')
@@ -51,40 +56,51 @@ async function inserirAluno() {
       {
         ra: document.getElementById('ra').value,
         nome_completo: document.getElementById('nome').value,
-        sala: document.getElementById('sala').value,
-        foto_url: document.getElementById('foto').value
+        data_nascimento: document.getElementById('data').value || null,
+        tutor: document.getElementById('tutor').value || null,
+        eletiva_semestre_1: document.getElementById('eletiva1').value || null,
+        eletiva_semestre_2: document.getElementById('eletiva2').value || null,
+        sala: document.getElementById('sala').value || null,
+        foto_url: document.getElementById('foto').value || null
       }
     ]);
 
   mostrarDebug("INSERT", data, error);
 }
 
-// 🔹 LISTAR
+// LISTAR
 async function listarAlunos() {
   const { data, error } = await supabase
     .from('alunos')
-    .select('*');
+    .select('*')
+    .order('nome_completo');
 
   mostrarDebug("SELECT", data, error);
 
-  if (data) {
-    let html = '';
+  if (!data) return;
 
-    data.forEach(aluno => {
-      html += `
-        <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-          <b>${aluno.nome_completo}</b><br>
-          RA: ${aluno.ra}<br>
-          Sala: ${aluno.sala}<br>
-        </div>
-      `;
-    });
+  let html = '';
 
-    document.getElementById('lista').innerHTML = html;
-  }
+  data.forEach(aluno => {
+    html += `
+      <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+        <img src="${aluno.foto_url || ''}" width="80"><br>
+        <b>${aluno.nome_completo}</b><br>
+        RA: ${aluno.ra}<br>
+        Sala: ${aluno.sala || '-'}<br>
+        Data Nasc.: ${aluno.data_nascimento || '-'}<br>
+        Tutor: ${aluno.tutor || '-'}<br>
+        Eletiva 1: ${aluno.eletiva_semestre_1 || '-'}<br>
+        Eletiva 2: ${aluno.eletiva_semestre_2 || '-'}<br>
+        Criado em: ${aluno.criado_em || '-'}
+      </div>
+    `;
+  });
+
+  document.getElementById('lista').innerHTML = html;
 }
 
-// 🔹 ATUALIZAR
+// ATUALIZAR
 async function atualizarAluno() {
   const ra = document.getElementById('ra').value;
 
@@ -92,7 +108,12 @@ async function atualizarAluno() {
     .from('alunos')
     .update({
       nome_completo: document.getElementById('nome').value,
-      sala: document.getElementById('sala').value
+      data_nascimento: document.getElementById('data').value || null,
+      tutor: document.getElementById('tutor').value || null,
+      eletiva_semestre_1: document.getElementById('eletiva1').value || null,
+      eletiva_semestre_2: document.getElementById('eletiva2').value || null,
+      sala: document.getElementById('sala').value || null,
+      foto_url: document.getElementById('foto').value || null
     })
     .eq('ra', ra);
 
