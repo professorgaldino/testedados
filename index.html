@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Teste Completo Supabase</title>
+  <title>Teste Inserção Alunos Supabase</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
@@ -11,7 +11,7 @@
 
 <input id="ra" placeholder="RA"><br>
 <input id="nome" placeholder="Nome completo"><br>
-<input id="data" type="date"><br>
+<input id="data" type="date" placeholder="Data de nascimento"><br>
 <input id="tutor" placeholder="Tutor"><br>
 <input id="eletiva1" placeholder="Eletiva 1º semestre"><br>
 <input id="eletiva2" placeholder="Eletiva 2º semestre"><br>
@@ -35,40 +35,37 @@ const supabase = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0'
 );
 
-// FUNÇÃO VISUAL
+// Função para mostrar resultado na tela
 function mostrar(status, data, error) {
   document.getElementById('status').innerHTML =
     `<b>${status}</b><br><br>` +
-    (error 
-      ? `<span style="color:red">ERRO: ${error.message}</span>` 
-      : `<span style="color:green">SUCESSO</span>`
-    );
+    (error ? `<span style="color:red">ERRO: ${error.message}</span>` : `<span style="color:green">SUCESSO</span>`);
 
   document.getElementById('debug').textContent =
     "DATA:\n" + JSON.stringify(data, null, 2) +
     "\n\nERROR:\n" + JSON.stringify(error, null, 2);
 }
 
-// TESTE AUTOMÁTICO
+// Teste automático com dados fixos
 async function teste() {
   const { data, error } = await supabase
     .from('alunos')
     .insert([{
-      ra: "TESTE_FULL",
-      nome_completo: "Aluno Teste Completo",
+      ra: "TESTE001",
+      nome_completo: "Aluno Teste",
       data_nascimento: "2010-01-01",
-      tutor: "Teste Tutor",
+      tutor: "Tutor Teste",
       eletiva_semestre_1: "Robótica",
       eletiva_semestre_2: "Artes",
       sala: "6A",
       foto_url: "https://via.placeholder.com/100"
     }])
-    .select();
+    .select(); // retorna os dados inseridos
 
-  mostrar("TESTE COMPLETO", data, error);
+  mostrar("TESTE AUTOMÁTICO", data, error);
 }
 
-// INSERÇÃO REAL
+// Inserção via formulário
 async function inserir() {
   const ra = document.getElementById('ra').value.trim();
   const nome = document.getElementById('nome').value.trim();
@@ -90,9 +87,9 @@ async function inserir() {
       sala: document.getElementById('sala').value || null,
       foto_url: document.getElementById('foto').value || null
     }])
-    .select();
+    .select(); // retorna os dados inseridos
 
-  mostrar("INSERÇÃO COMPLETA", data, error);
+  mostrar("INSERÇÃO VIA FORMULÁRIO", data, error);
 }
 </script>
 
