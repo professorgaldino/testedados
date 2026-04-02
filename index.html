@@ -4,32 +4,21 @@
 <meta charset="UTF-8">
 <title>Gestão de Alunos</title>
 <style>
-  /* Reset básico */
-  * { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-  body { background-color: #f4f6f8; padding: 20px; }
-  h1, h2 { color: #333; margin-bottom: 10px; }
-
-  /* Formulário */
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; padding: 20px; }
+  h1 { color: #333; margin-bottom: 20px; }
   form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
   form input, form select, form button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
-  form button { background-color: #007bff; color: #fff; border: none; cursor: pointer; transition: background 0.2s; }
+  form button { background-color: #007bff; color: white; border: none; cursor: pointer; transition: background 0.2s; }
   form button:hover { background-color: #0056b3; }
-
-  /* Mensagens */
   .success { color: green; margin: 10px 0; }
   .error { color: red; margin: 10px 0; }
-
-  /* Tabela moderna */
   table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
   th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
   th { background-color: #007bff; color: white; }
   tr:hover { background-color: #f1f9ff; }
-  img { border-radius: 4px; }
-
-  /* Filtros e buscas */
+  img { border-radius: 4px; max-width:50px; }
   .filtros { display: flex; gap: 10px; margin-bottom: 20px; }
-  .filtros input, .filtros button { width: auto; flex: 1; }
+  .filtros input, .filtros button { flex: 1; padding: 8px; }
 </style>
 </head>
 <body>
@@ -37,7 +26,6 @@
 <h1>Gestão de Alunos</h1>
 
 <form id="formAluno">
-  <h2>Adicionar / Atualizar Aluno</h2>
   <div id="mensagem"></div>
   RA: <input type="text" name="RA" required>
   Nome Completo: <input type="text" name="Nome Completo">
@@ -60,14 +48,7 @@
 <table id="tabelaAlunos">
   <thead>
     <tr>
-      <th>RA</th>
-      <th>Nome</th>
-      <th>Data Nasc.</th>
-      <th>Tutor</th>
-      <th>Eletiva 1</th>
-      <th>Eletiva 2</th>
-      <th>Foto</th>
-      <th>Sala</th>
+      <th>RA</th><th>Nome</th><th>Data Nasc.</th><th>Tutor</th><th>Eletiva 1</th><th>Eletiva 2</th><th>Foto</th><th>Sala</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -75,28 +56,35 @@
 
 <script>
 const sheetUrl = 'https://script.google.com/macros/s/AKfycbzWCXZuHlrQvO_vwjZzqY9grco9lmB0HpxGZAbNuzdkSC6Og5tGF51Y4kznOgzsvvAuRw/exec';
-
 const tabela = document.querySelector('#tabelaAlunos tbody');
 const mensagem = document.getElementById('mensagem');
-
 let alunosCache = [];
+
+function mostrarMensagem(texto, tipo='success'){
+  mensagem.innerHTML = `<div class="${tipo}">${texto}</div>`;
+}
 
 // Carregar alunos
 async function carregarAlunos(){
   try{
     const res = await fetch(sheetUrl);
+    if(!res.ok) throw new Error('Não foi possível acessar o Web App');
     const data = await res.json();
     alunosCache = data;
     renderizarTabela(data);
   }catch(err){
     console.error(err);
-    tabela.innerHTML = '<tr><td colspan="8">Erro ao carregar alunos</td></tr>';
+    mostrarMensagem(`Erro ao carregar alunos: ${err.message}`,'error');
   }
 }
 
-// Renderiza a tabela
+// Renderizar tabela
 function renderizarTabela(alunos){
   tabela.innerHTML = '';
+  if(alunos.length === 0){
+    tabela.innerHTML = '<tr><td colspan="8">Nenhum aluno encontrado</td></tr>';
+    return;
+  }
   alunos.forEach(a=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -106,21 +94,19 @@ function renderizarTabela(alunos){
       <td>${a.Tutor}</td>
       <td>${a["Eletiva Semestre 1"]}</td>
       <td>${a["Eletiva Semestre 2"]}</td>
-      <td>${a["Foto URL"] ? `<img src="${a["Foto URL"]}" width="50">` : ''}</td>
+      <td>${a["Foto URL"] ? `<img src="${a["Foto URL"]}">` : ''}</td>
       <td>${a.Sala}</td>
     `;
     tabela.appendChild(tr);
   });
 }
 
-// Inserir / Atualizar aluno
+// Inserir ou atualizar aluno
 document.getElementById('formAluno').addEventListener('submit', async e=>{
   e.preventDefault();
   const form = e.target;
   const dados = {};
-  Array.from(form.elements).forEach(el=>{
-    if(el.name) dados[el.name] = el.value;
-  });
+  Array.from(form.elements).forEach(el=>{ if(el.name) dados[el.name] = el.value; });
   try{
     const res = await fetch(sheetUrl,{
       method:'POST',
@@ -129,19 +115,19 @@ document.getElementById('formAluno').addEventListener('submit', async e=>{
     });
     const result = await res.json();
     if(result.status==="ok"){
-      mensagem.innerHTML = `<div class="success">Aluno inserido/atualizado com sucesso!</div>`;
+      mostrarMensagem('Aluno inserido/atualizado com sucesso!');
       form.reset();
       carregarAlunos();
     }else{
-      mensagem.innerHTML = `<div class="error">Erro ao inserir/atualizar aluno</div>`;
+      mostrarMensagem('Erro ao inserir/atualizar aluno','error');
     }
   }catch(err){
     console.error(err);
-    mensagem.innerHTML = `<div class="error">Erro: ${err}</div>`;
+    mostrarMensagem(`Erro: ${err.message}`,'error');
   }
 });
 
-// Filtrar alunos por sala
+// Filtrar por sala
 function filtrarSala(){
   const sala = document.getElementById('filtroSala').value.trim().toLowerCase();
   if(!sala) return renderizarTabela(alunosCache);
@@ -149,7 +135,7 @@ function filtrarSala(){
   renderizarTabela(filtrados);
 }
 
-// Buscar aluno por RA ou Nome
+// Buscar aluno por RA ou nome
 function buscarAluno(){
   const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
   const encontrado = alunosCache.find(a =>
@@ -161,9 +147,9 @@ function buscarAluno(){
     Array.from(form.elements).forEach(el=>{
       if(el.name) el.value = encontrado[el.name] || '';
     });
-    mensagem.innerHTML = `<div class="success">Aluno encontrado. Pode editar e enviar.</div>`;
+    mostrarMensagem('Aluno encontrado. Pode editar e enviar.');
   }else{
-    mensagem.innerHTML = `<div class="error">Aluno não encontrado</div>`;
+    mostrarMensagem('Aluno não encontrado','error');
   }
 }
 
