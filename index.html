@@ -4,69 +4,82 @@
 <meta charset="UTF-8">
 <title>Gestão de Alunos</title>
 <style>
-body { font-family: Arial; margin: 20px; }
-input, button, select { margin: 5px 0; padding: 5px; }
-.success { color: green; }
-.error { color: red; }
-table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
+  /* Reset básico */
+  * { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+  body { background-color: #f4f6f8; padding: 20px; }
+  h1, h2 { color: #333; margin-bottom: 10px; }
+
+  /* Formulário */
+  form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+  form input, form select, form button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+  form button { background-color: #007bff; color: #fff; border: none; cursor: pointer; transition: background 0.2s; }
+  form button:hover { background-color: #0056b3; }
+
+  /* Mensagens */
+  .success { color: green; margin: 10px 0; }
+  .error { color: red; margin: 10px 0; }
+
+  /* Tabela moderna */
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+  th { background-color: #007bff; color: white; }
+  tr:hover { background-color: #f1f9ff; }
+  img { border-radius: 4px; }
+
+  /* Filtros e buscas */
+  .filtros { display: flex; gap: 10px; margin-bottom: 20px; }
+  .filtros input, .filtros button { width: auto; flex: 1; }
 </style>
 </head>
 <body>
 
 <h1>Gestão de Alunos</h1>
 
-<!-- Inserir / Atualizar -->
-<h2>Adicionar / Atualizar Aluno</h2>
-<div id="mensagem"></div>
 <form id="formAluno">
-  RA: <input type="text" name="RA" required><br>
-  Nome Completo: <input type="text" name="Nome Completo"><br>
-  Data Nascimento: <input type="date" name="Data Nascimento"><br>
-  Tutor: <input type="text" name="Tutor"><br>
-  Eletiva Semestre 1: <input type="text" name="Eletiva Semestre 1"><br>
-  Eletiva Semestre 2: <input type="text" name="Eletiva Semestre 2"><br>
-  Foto URL: <input type="text" name="Foto URL"><br>
-  Sala: <input type="text" name="Sala"><br>
+  <h2>Adicionar / Atualizar Aluno</h2>
+  <div id="mensagem"></div>
+  RA: <input type="text" name="RA" required>
+  Nome Completo: <input type="text" name="Nome Completo">
+  Data Nascimento: <input type="date" name="Data Nascimento">
+  Tutor: <input type="text" name="Tutor">
+  Eletiva Semestre 1: <input type="text" name="Eletiva Semestre 1">
+  Eletiva Semestre 2: <input type="text" name="Eletiva Semestre 2">
+  Foto URL: <input type="text" name="Foto URL">
+  Sala: <input type="text" name="Sala">
   <button type="submit">Enviar</button>
 </form>
 
-<hr>
+<div class="filtros">
+  <input type="text" id="filtroSala" placeholder="Filtrar por Sala">
+  <button onclick="filtrarSala()">Filtrar</button>
+  <input type="text" id="buscaAluno" placeholder="Buscar por RA ou Nome">
+  <button onclick="buscarAluno()">Buscar</button>
+</div>
 
-<!-- Filtro por sala -->
-<h2>Filtrar Alunos por Sala</h2>
-Sala: <input type="text" id="filtroSala">
-<button onclick="filtrarSala()">Filtrar</button>
-<button onclick="carregarAlunos()">Mostrar Todos</button>
-
-<hr>
-
-<!-- Buscar aluno -->
-<h2>Procurar Aluno para Edição</h2>
-RA ou Nome: <input type="text" id="buscaAluno">
-<button onclick="buscarAluno()">Buscar</button>
-
-<hr>
-
-<!-- Lista de alunos -->
-<h2>Lista de Alunos</h2>
 <table id="tabelaAlunos">
-<thead>
-<tr>
-  <th>RA</th><th>Nome Completo</th><th>Data Nascimento</th><th>Tutor</th>
-  <th>Eletiva 1</th><th>Eletiva 2</th><th>Foto</th><th>Sala</th>
-</tr>
-</thead>
-<tbody></tbody>
+  <thead>
+    <tr>
+      <th>RA</th>
+      <th>Nome</th>
+      <th>Data Nasc.</th>
+      <th>Tutor</th>
+      <th>Eletiva 1</th>
+      <th>Eletiva 2</th>
+      <th>Foto</th>
+      <th>Sala</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 
 <script>
-const sheetUrl = 'https://script.google.com/macros/s/AKfycbz1qliBroQMntMiPcnru5AgWPs3lYSr8geC0q8FctyIwiVeYnpE5Lt23Z9OjWKJrfT8Lg/exec';
+const sheetUrl = 'COLE_AQUI_A_URL_DO_WEB_APP';
 
 const tabela = document.querySelector('#tabelaAlunos tbody');
 const mensagem = document.getElementById('mensagem');
 
-let alunosCache = []; // guarda todos os alunos carregados
+let alunosCache = [];
 
 // Carregar alunos
 async function carregarAlunos(){
@@ -77,7 +90,7 @@ async function carregarAlunos(){
     renderizarTabela(data);
   }catch(err){
     console.error(err);
-    tabela.innerHTML = `<tr><td colspan="8">Erro ao carregar alunos</td></tr>`;
+    tabela.innerHTML = '<tr><td colspan="8">Erro ao carregar alunos</td></tr>';
   }
 }
 
@@ -130,21 +143,20 @@ document.getElementById('formAluno').addEventListener('submit', async e=>{
 
 // Filtrar alunos por sala
 function filtrarSala(){
-  const sala = document.getElementById('filtroSala').value.trim();
+  const sala = document.getElementById('filtroSala').value.trim().toLowerCase();
   if(!sala) return renderizarTabela(alunosCache);
-  const filtrados = alunosCache.filter(a=>a.Sala && a.Sala.toLowerCase() === sala.toLowerCase());
+  const filtrados = alunosCache.filter(a => a.Sala && a.Sala.toLowerCase() === sala);
   renderizarTabela(filtrados);
 }
 
-// Buscar aluno por RA ou nome
+// Buscar aluno por RA ou Nome
 function buscarAluno(){
   const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
-  const encontrado = alunosCache.find(a=>
-    (a.RA && a.RA.toLowerCase()===termo) ||
+  const encontrado = alunosCache.find(a =>
+    (a.RA && a.RA.toLowerCase() === termo) ||
     (a["Nome Completo"] && a["Nome Completo"].toLowerCase().includes(termo))
   );
   if(encontrado){
-    // Preencher o formulário para edição
     const form = document.getElementById('formAluno');
     Array.from(form.elements).forEach(el=>{
       if(el.name) el.value = encontrado[el.name] || '';
@@ -155,7 +167,7 @@ function buscarAluno(){
   }
 }
 
-// Inicializa a tabela
+// Inicializa
 carregarAlunos();
 </script>
 
