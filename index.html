@@ -2,14 +2,22 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Alunos Escola</title>
+<title>Alunos Escola - Supabase</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<style>
+  body { font-family: Arial; margin: 20px; }
+  input, button { margin: 5px 0; }
+  .error { color: red; }
+  .success { color: green; }
+</style>
 </head>
 <body>
+
 <h1>Alunos</h1>
 <ul id="listaAlunos"></ul>
 
 <h2>Adicionar Aluno</h2>
+<div id="mensagem"></div>
 <form id="formAluno">
   RA: <input type="text" name="ra" required><br>
   Nome: <input type="text" name="nome_completo"><br>
@@ -23,29 +31,28 @@
 </form>
 
 <script>
-// CONFIGURAÇÃO DO SUPABASE
 const supabaseUrl = 'https://qxaqyyxslckjrpavydnx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0';
 const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
 
-// FUNÇÃO PARA CARREGAR ALUNOS
-async function carregarAlunos() {
+const listaAlunos = document.getElementById('listaAlunos');
+const mensagem = document.getElementById('mensagem');
+
+async function carregarAlunos(){
     const { data, error } = await supabase.from('alunos').select('*');
     if(error){
         console.error(error);
-        alert("Erro ao carregar alunos: " + error.message);
+        mensagem.innerHTML = `<div class="error">Erro ao carregar alunos: ${error.message}</div>`;
         return;
     }
-    const ul = document.getElementById('listaAlunos');
-    ul.innerHTML = '';
+    listaAlunos.innerHTML = '';
     data.forEach(a => {
         const li = document.createElement('li');
         li.textContent = `${a.ra} - ${a.nome_completo} - ${a.sala}`;
-        ul.appendChild(li);
+        listaAlunos.appendChild(li);
     });
 }
 
-// FORMULÁRIO PARA INSERIR ALUNO
 document.getElementById('formAluno').addEventListener('submit', async e => {
     e.preventDefault();
     const form = e.target;
@@ -63,15 +70,17 @@ document.getElementById('formAluno').addEventListener('submit', async e => {
     const { data, error } = await supabase.from('alunos').insert([dados]);
     if(error){
         console.error(error);
-        alert("Erro ao inserir aluno: " + error.message);
+        mensagem.innerHTML = `<div class="error">Erro ao inserir: ${error.message}</div>`;
     } else {
+        mensagem.innerHTML = `<div class="success">Aluno inserido com sucesso!</div>`;
         form.reset();
         carregarAlunos();
     }
 });
 
-// CARREGAR AO ABRIR
+// Carregar alunos ao abrir
 carregarAlunos();
 </script>
+
 </body>
 </html>
