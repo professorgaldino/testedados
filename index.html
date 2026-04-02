@@ -1,97 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Teste Inserção Alunos Supabase</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<meta charset="UTF-8">
+<title>Alunos Escola</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 </head>
 <body>
+<h1>Alunos</h1>
+<ul id="listaAlunos"></ul>
 
-<h2>Cadastro Completo de Aluno</h2>
-
-<input id="ra" placeholder="RA"><br>
-<input id="nome" placeholder="Nome completo"><br>
-<input id="data" type="date" placeholder="Data de nascimento"><br>
-<input id="tutor" placeholder="Tutor"><br>
-<input id="eletiva1" placeholder="Eletiva 1º semestre"><br>
-<input id="eletiva2" placeholder="Eletiva 2º semestre"><br>
-<input id="sala" placeholder="Sala"><br>
-<input id="foto" placeholder="Link da foto"><br><br>
-
-<button onclick="inserir()">Inserir</button>
-<button onclick="teste()">Teste automático</button>
-
-<hr>
-
-<h2>Status</h2>
-<div id="status" style="padding:10px; border:1px solid #000;"></div>
-
-<h2>Debug completo</h2>
-<pre id="debug" style="background:#000;color:#0f0;padding:10px;"></pre>
+<h2>Adicionar Aluno</h2>
+<form id="formAluno">
+  RA: <input type="text" name="ra" required><br>
+  Nome: <input type="text" name="nome_completo"><br>
+  Data Nascimento: <input type="date" name="data_nascimento"><br>
+  Tutor: <input type="text" name="tutor"><br>
+  Eletiva 1: <input type="text" name="eletiva_semestre_1"><br>
+  Eletiva 2: <input type="text" name="eletiva_semestre_2"><br>
+  Foto URL: <input type="text" name="foto_url"><br>
+  Sala: <input type="text" name="sala"><br>
+  <button type="submit">Adicionar</button>
+</form>
 
 <script>
-const supabase = supabase.createClient(
-  'https://qxaqyyxslckjrpavydnx.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0'
-);
+// CONFIGURAÇÃO DO SUPABASE
+const supabaseUrl = 'https://qxaqyyxslckjrpavydnx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0';
+const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
 
-// Função para mostrar resultado na tela
-function mostrar(status, data, error) {
-  document.getElementById('status').innerHTML =
-    `<b>${status}</b><br><br>` +
-    (error ? `<span style="color:red">ERRO: ${error.message}</span>` : `<span style="color:green">SUCESSO</span>`);
-
-  document.getElementById('debug').textContent =
-    "DATA:\n" + JSON.stringify(data, null, 2) +
-    "\n\nERROR:\n" + JSON.stringify(error, null, 2);
+// FUNÇÃO PARA CARREGAR ALUNOS
+async function carregarAlunos() {
+    const { data, error } = await supabase.from('alunos').select('*');
+    if(error){
+        console.error(error);
+        alert("Erro ao carregar alunos: " + error.message);
+        return;
+    }
+    const ul = document.getElementById('listaAlunos');
+    ul.innerHTML = '';
+    data.forEach(a => {
+        const li = document.createElement('li');
+        li.textContent = `${a.ra} - ${a.nome_completo} - ${a.sala}`;
+        ul.appendChild(li);
+    });
 }
 
-// Teste automático com dados fixos
-async function teste() {
-  const { data, error } = await supabase
-    .from('alunos')
-    .insert([{
-      ra: "TESTE001",
-      nome_completo: "Aluno Teste",
-      data_nascimento: "2010-01-01",
-      tutor: "Tutor Teste",
-      eletiva_semestre_1: "Robótica",
-      eletiva_semestre_2: "Artes",
-      sala: "6A",
-      foto_url: "https://via.placeholder.com/100"
-    }])
-    .select(); // retorna os dados inseridos
+// FORMULÁRIO PARA INSERIR ALUNO
+document.getElementById('formAluno').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+    const dados = {
+        ra: form.ra.value,
+        nome_completo: form.nome_completo.value,
+        data_nascimento: form.data_nascimento.value,
+        tutor: form.tutor.value,
+        eletiva_semestre_1: form.eletiva_semestre_1.value,
+        eletiva_semestre_2: form.eletiva_semestre_2.value,
+        foto_url: form.foto_url.value,
+        sala: form.sala.value
+    };
 
-  mostrar("TESTE AUTOMÁTICO", data, error);
-}
+    const { data, error } = await supabase.from('alunos').insert([dados]);
+    if(error){
+        console.error(error);
+        alert("Erro ao inserir aluno: " + error.message);
+    } else {
+        form.reset();
+        carregarAlunos();
+    }
+});
 
-// Inserção via formulário
-async function inserir() {
-  const ra = document.getElementById('ra').value.trim();
-  const nome = document.getElementById('nome').value.trim();
-
-  if (!ra || !nome) {
-    alert("RA e Nome são obrigatórios");
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from('alunos')
-    .insert([{
-      ra: ra,
-      nome_completo: nome,
-      data_nascimento: document.getElementById('data').value || null,
-      tutor: document.getElementById('tutor').value || null,
-      eletiva_semestre_1: document.getElementById('eletiva1').value || null,
-      eletiva_semestre_2: document.getElementById('eletiva2').value || null,
-      sala: document.getElementById('sala').value || null,
-      foto_url: document.getElementById('foto').value || null
-    }])
-    .select(); // retorna os dados inseridos
-
-  mostrar("INSERÇÃO VIA FORMULÁRIO", data, error);
-}
+// CARREGAR AO ABRIR
+carregarAlunos();
 </script>
-
 </body>
 </html>
