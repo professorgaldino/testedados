@@ -2,83 +2,160 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Alunos Escola - Supabase</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<title>Gestão de Alunos</title>
 <style>
-  body { font-family: Arial; margin: 20px; }
-  input, button { margin: 5px 0; }
-  .error { color: red; }
-  .success { color: green; }
+body { font-family: Arial; margin: 20px; }
+input, button, select { margin: 5px 0; padding: 5px; }
+.success { color: green; }
+.error { color: red; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
 </style>
 </head>
 <body>
 
-<h1>Alunos</h1>
-<ul id="listaAlunos"></ul>
+<h1>Gestão de Alunos</h1>
 
-<h2>Adicionar Aluno</h2>
+<!-- Inserir / Atualizar -->
+<h2>Adicionar / Atualizar Aluno</h2>
 <div id="mensagem"></div>
 <form id="formAluno">
-  RA: <input type="text" name="ra" required><br>
-  Nome: <input type="text" name="nome_completo"><br>
-  Data Nascimento: <input type="date" name="data_nascimento"><br>
-  Tutor: <input type="text" name="tutor"><br>
-  Eletiva 1: <input type="text" name="eletiva_semestre_1"><br>
-  Eletiva 2: <input type="text" name="eletiva_semestre_2"><br>
-  Foto URL: <input type="text" name="foto_url"><br>
-  Sala: <input type="text" name="sala"><br>
-  <button type="submit">Adicionar</button>
+  RA: <input type="text" name="RA" required><br>
+  Nome Completo: <input type="text" name="Nome Completo"><br>
+  Data Nascimento: <input type="date" name="Data Nascimento"><br>
+  Tutor: <input type="text" name="Tutor"><br>
+  Eletiva Semestre 1: <input type="text" name="Eletiva Semestre 1"><br>
+  Eletiva Semestre 2: <input type="text" name="Eletiva Semestre 2"><br>
+  Foto URL: <input type="text" name="Foto URL"><br>
+  Sala: <input type="text" name="Sala"><br>
+  <button type="submit">Enviar</button>
 </form>
 
-<script>
-const supabaseUrl = 'https://qxaqyyxslckjrpavydnx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXF5eXhzbGNranJwYXZ5ZG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODA3NzksImV4cCI6MjA5MDY1Njc3OX0.ZWquG71LA0uqz6NACy40dm6nylreS6kzPuAcxVGHxx0';
-const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
+<hr>
 
-const listaAlunos = document.getElementById('listaAlunos');
+<!-- Filtro por sala -->
+<h2>Filtrar Alunos por Sala</h2>
+Sala: <input type="text" id="filtroSala">
+<button onclick="filtrarSala()">Filtrar</button>
+<button onclick="carregarAlunos()">Mostrar Todos</button>
+
+<hr>
+
+<!-- Buscar aluno -->
+<h2>Procurar Aluno para Edição</h2>
+RA ou Nome: <input type="text" id="buscaAluno">
+<button onclick="buscarAluno()">Buscar</button>
+
+<hr>
+
+<!-- Lista de alunos -->
+<h2>Lista de Alunos</h2>
+<table id="tabelaAlunos">
+<thead>
+<tr>
+  <th>RA</th><th>Nome Completo</th><th>Data Nascimento</th><th>Tutor</th>
+  <th>Eletiva 1</th><th>Eletiva 2</th><th>Foto</th><th>Sala</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+const sheetUrl = 'https://script.google.com/macros/s/AKfycbzTwYYob6nRch187LO69EUefdbFD_k3rf3HY4x3rczrSzdXhhSizNrsBXDc_UuM9f1R0A/exec';
+
+const tabela = document.querySelector('#tabelaAlunos tbody');
 const mensagem = document.getElementById('mensagem');
 
+let alunosCache = []; // guarda todos os alunos carregados
+
+// Carregar alunos
 async function carregarAlunos(){
-    const { data, error } = await supabase.from('alunos').select('*');
-    if(error){
-        console.error(error);
-        mensagem.innerHTML = `<div class="error">Erro ao carregar alunos: ${error.message}</div>`;
-        return;
-    }
-    listaAlunos.innerHTML = '';
-    data.forEach(a => {
-        const li = document.createElement('li');
-        li.textContent = `${a.ra} - ${a.nome_completo} - ${a.sala}`;
-        listaAlunos.appendChild(li);
-    });
+  try{
+    const res = await fetch(sheetUrl);
+    const data = await res.json();
+    alunosCache = data;
+    renderizarTabela(data);
+  }catch(err){
+    console.error(err);
+    tabela.innerHTML = `<tr><td colspan="8">Erro ao carregar alunos</td></tr>`;
+  }
 }
 
-document.getElementById('formAluno').addEventListener('submit', async e => {
-    e.preventDefault();
-    const form = e.target;
-    const dados = {
-        ra: form.ra.value,
-        nome_completo: form.nome_completo.value,
-        data_nascimento: form.data_nascimento.value,
-        tutor: form.tutor.value,
-        eletiva_semestre_1: form.eletiva_semestre_1.value,
-        eletiva_semestre_2: form.eletiva_semestre_2.value,
-        foto_url: form.foto_url.value,
-        sala: form.sala.value
-    };
+// Renderiza a tabela
+function renderizarTabela(alunos){
+  tabela.innerHTML = '';
+  alunos.forEach(a=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.RA}</td>
+      <td>${a["Nome Completo"]}</td>
+      <td>${a["Data Nascimento"]}</td>
+      <td>${a.Tutor}</td>
+      <td>${a["Eletiva Semestre 1"]}</td>
+      <td>${a["Eletiva Semestre 2"]}</td>
+      <td>${a["Foto URL"] ? `<img src="${a["Foto URL"]}" width="50">` : ''}</td>
+      <td>${a.Sala}</td>
+    `;
+    tabela.appendChild(tr);
+  });
+}
 
-    const { data, error } = await supabase.from('alunos').insert([dados]);
-    if(error){
-        console.error(error);
-        mensagem.innerHTML = `<div class="error">Erro ao inserir: ${error.message}</div>`;
-    } else {
-        mensagem.innerHTML = `<div class="success">Aluno inserido com sucesso!</div>`;
-        form.reset();
-        carregarAlunos();
+// Inserir / Atualizar aluno
+document.getElementById('formAluno').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const form = e.target;
+  const dados = {};
+  Array.from(form.elements).forEach(el=>{
+    if(el.name) dados[el.name] = el.value;
+  });
+  try{
+    const res = await fetch(sheetUrl,{
+      method:'POST',
+      body: JSON.stringify(dados),
+      headers:{'Content-Type':'application/json'}
+    });
+    const result = await res.json();
+    if(result.status==="ok"){
+      mensagem.innerHTML = `<div class="success">Aluno inserido/atualizado com sucesso!</div>`;
+      form.reset();
+      carregarAlunos();
+    }else{
+      mensagem.innerHTML = `<div class="error">Erro ao inserir/atualizar aluno</div>`;
     }
+  }catch(err){
+    console.error(err);
+    mensagem.innerHTML = `<div class="error">Erro: ${err}</div>`;
+  }
 });
 
-// Carregar alunos ao abrir
+// Filtrar alunos por sala
+function filtrarSala(){
+  const sala = document.getElementById('filtroSala').value.trim();
+  if(!sala) return renderizarTabela(alunosCache);
+  const filtrados = alunosCache.filter(a=>a.Sala && a.Sala.toLowerCase() === sala.toLowerCase());
+  renderizarTabela(filtrados);
+}
+
+// Buscar aluno por RA ou nome
+function buscarAluno(){
+  const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
+  const encontrado = alunosCache.find(a=>
+    (a.RA && a.RA.toLowerCase()===termo) ||
+    (a["Nome Completo"] && a["Nome Completo"].toLowerCase().includes(termo))
+  );
+  if(encontrado){
+    // Preencher o formulário para edição
+    const form = document.getElementById('formAluno');
+    Array.from(form.elements).forEach(el=>{
+      if(el.name) el.value = encontrado[el.name] || '';
+    });
+    mensagem.innerHTML = `<div class="success">Aluno encontrado. Pode editar e enviar.</div>`;
+  }else{
+    mensagem.innerHTML = `<div class="error">Aluno não encontrado</div>`;
+  }
+}
+
+// Inicializa a tabela
 carregarAlunos();
 </script>
 
