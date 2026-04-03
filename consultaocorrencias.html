@@ -1,65 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Consulta de Ocorrências</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-  .container { max-width: 1000px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
-  h1 { text-align: center; color: #333; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  th { background-color: #f2f2f2; }
-  .loading { text-align: center; color: #555; margin-top: 20px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Consulta de Ocorrências</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
+    th { background: #eee; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .error { color: red; text-align: center; margin-top: 20px; }
+    .loading { text-align: center; font-weight: bold; }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>Consulta de Ocorrências 14</h1>
-  <div class="loading" id="loading">Carregando ocorrências...</div>
-  <table id="tabelaResultados" style="display:none;">
-    <thead>
-      <tr>
-        <th>Data Registro</th>
-        <th>Hora Registro</th>
-        <th>RA</th>
-        <th>Nome</th>
-        <th>Sala</th>
-        <th>Tutor</th>
-        <th>Professor</th>
-        <th>Descrição</th>
-        <th>Ação Tomada</th>
-        <th>Data do Fato</th>
-        <th>Hora do Fato</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+
+<h1>Consulta de Ocorrências 15</h1>
+<div class="loading">Carregando ocorrências...</div>
+<div class="error" id="error"></div>
+
+<table id="tabelaOcorrencias">
+  <thead>
+    <tr>
+      <th>Data Registro</th>
+      <th>Hora Registro</th>
+      <th>RA</th>
+      <th>Nome</th>
+      <th>Sala</th>
+      <th>Tutor</th>
+      <th>Professor</th>
+      <th>Descrição</th>
+      <th>Ação Tomada</th>
+      <th>Data do Fato</th>
+      <th>Hora do Fato</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqkzJ35rcbPFkWA52M7wEZkSJYDAe-FfkD0qDvIFYbHwqgybvcO9WKF4L6SSYqohc/exec";
-
-async function carregarOcorrencias() {
-  const tabela = document.getElementById("tabelaResultados");
+  const urlWebApp = "https://script.google.com/macros/s/AKfycbxuLqZL8_w31EGMmGLx-ngQUVt3Om1NmMVCrst929PGi4wgCADTpbiuuHVRlET7iXDB/exec";
+  const tabela = document.getElementById("tabelaOcorrencias");
   const tbody = tabela.querySelector("tbody");
-  const loading = document.getElementById("loading");
+  const errorDiv = document.getElementById("error");
+  const loadingDiv = document.querySelector(".loading");
 
-  tbody.innerHTML = "";
-  tabela.style.display = "none";
-  loading.style.display = "block";
+  async function carregarOcorrencias() {
+    try {
+      const response = await fetch(urlWebApp, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "consultar" })
+      });
 
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "consultar" })
-    });
-    const dados = await res.json();
+      if (!response.ok) throw new Error("Erro HTTP: " + response.status);
 
-    if (dados.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">Nenhuma ocorrência encontrada.</td></tr>`;
-    } else {
+      const dados = await response.json();
+
+      if (!Array.isArray(dados) || dados.length === 0) {
+        errorDiv.textContent = "Nenhuma ocorrência encontrada.";
+        loadingDiv.style.display = "none";
+        return;
+      }
+
       dados.forEach(o => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -77,18 +81,20 @@ async function carregarOcorrencias() {
         `;
         tbody.appendChild(tr);
       });
-    }
-    tabela.style.display = "table";
-  } catch (err) {
-    console.error(err);
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:red;">Erro ao carregar ocorrências.</td></tr>`;
-    tabela.style.display = "table";
-  } finally {
-    loading.style.display = "none";
-  }
-}
 
-window.addEventListener("load", carregarOcorrencias);
+      loadingDiv.style.display = "none";
+      tabela.style.display = "table";
+
+    } catch (err) {
+      loadingDiv.style.display = "none";
+      errorDiv.textContent = "Erro ao carregar ocorrências: " + err.message;
+      console.error(err);
+    }
+  }
+
+  // Executa ao carregar a página
+  carregarOcorrencias();
 </script>
+
 </body>
 </html>
