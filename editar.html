@@ -2,51 +2,45 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Edição de Alunos</title>
-
+<title>Editar Alunos</title>
 <style>
 body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-.container { max-width: 800px; margin: auto; }
-input, select { width: 100%; padding: 10px; margin-bottom: 10px; }
-button { padding: 10px 15px; cursor: pointer; }
-label { font-weight: bold; display: block; margin-bottom: 5px; }
+.container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
+button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+button:hover { opacity: 0.9; }
 .foto { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; cursor: pointer; }
-.sem-foto { width: 80px; height: 80px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; color: red; font-weight: bold; }
-.msg { font-weight: bold; margin-bottom: 10px; }
-.popup { display: none; position: fixed; z-index: 999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
+.sem-foto { width: 80px; height: 80px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 28px; color: red; font-weight: bold; }
+.popup { display: none; position: fixed; z-index: 999; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
 .popup img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; }
-.fechar { position: absolute; top: 15px; right: 25px; color: white; font-size: 28px; font-weight: bold; cursor: pointer; opacity: 0.7; }
-.fechar:hover { opacity: 1; }
+.fechar { position: absolute; top:15px; right:25px; color:white; font-size:28px; font-weight:bold; cursor:pointer; opacity:0.7; }
+.fechar:hover { opacity:1; }
 </style>
 </head>
-
 <body>
+
 <div class="container">
-  <h2>✏️ Edição de Alunos</h2>
+  <h2>📝 Editar Alunos 2</h2>
 
-  <!-- Pesquisa -->
-  <label for="busca">Pesquisar RA ou Nome</label>
-  <input type="text" id="busca" placeholder="Digite RA ou Nome">
-  <button onclick="buscar()">Buscar</button>
+  <input type="text" id="busca" placeholder="Pesquisar por RA ou Nome">
+  <button onclick="buscarAluno()">Buscar</button>
 
-  <div class="msg" id="msg"></div>
+  <form id="formulario">
+    <label>Data</label>
+    <input type="text" id="data" readonly>
 
-  <!-- Formulário -->
-  <form id="formAluno" style="display:none;" onsubmit="salvar(event)">
     <label>RA</label>
-    <input type="text" id="ra" readonly>
+    <input type="text" id="ra">
 
     <label>Nome</label>
     <input type="text" id="nome">
 
-    <label>Data</label>
-    <input type="text" id="data">
-
-    <label>Nascimento</label>
+    <label>Data de Nascimento</label>
     <input type="date" id="nascimento">
 
-    <label>Foto (ID do Drive)</label>
+    <label>Foto (ID do Google Drive)</label>
     <input type="text" id="foto">
+    <div id="mostraFoto"></div>
 
     <label>Sala</label>
     <input type="text" id="sala">
@@ -54,19 +48,16 @@ label { font-weight: bold; display: block; margin-bottom: 5px; }
     <label>Tutor</label>
     <input type="text" id="tutor">
 
-    <label>Eletiva 1º Semestre</label>
+    <label>Eletiva 1</label>
     <input type="text" id="eletiva1">
 
-    <label>Eletiva 2º Semestre</label>
+    <label>Eletiva 2</label>
     <input type="text" id="eletiva2">
 
-    <div style="margin-bottom:10px;">
-      <img id="fotoPreview" class="foto">
-      <div id="semFoto" class="sem-foto" style="display:none;">❌</div>
-    </div>
-
-    <button type="submit">Salvar alterações</button>
+    <button type="button" onclick="salvar()">Salvar</button>
   </form>
+
+  <div id="msg"></div>
 </div>
 
 <!-- POPUP -->
@@ -76,79 +67,67 @@ label { font-weight: bold; display: block; margin-bottom: 5px; }
 </div>
 
 <script>
-const url = "https://script.google.com/macros/s/AKfycbzIA0l9kM_85cgdjH5dakrk85Ybvc-5sSjj68aDeOIpy4VuQPKuJwps0KV5Q8hcMKCFjQ/exec";
+const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 let dados = [];
-let alunoAtual = null;
+
+// carregar todos os dados para pesquisa
+fetch(url)
+  .then(r => r.json())
+  .then(data => { dados = data; });
 
 // montar foto
 function montarFoto(id) {
   if (!id) return null;
   id = String(id).trim();
   if (id.length < 10) return null;
-  return "https://lh3.googleusercontent.com/d/" + id;
+  return "https://drive.google.com/uc?export=view&id=" + id;
 }
 
-// carregar dados ao iniciar
-function carregar() {
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      dados = data;
-    });
-}
-
-// buscar aluno
-function buscar() {
+// busca aluno
+function buscarAluno() {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
+  const aluno = dados.find(a => 
+    String(a.ra).toLowerCase() === valor || a.nome.toLowerCase() === valor
+  );
+
   const msg = document.getElementById("msg");
-  alunoAtual = dados.find(a => String(a.ra).toLowerCase() === valor || (a.nome || "").toLowerCase() === valor);
+  msg.innerHTML = "";
 
-  const form = document.getElementById("formAluno");
-  const fotoPreview = document.getElementById("fotoPreview");
-  const semFoto = document.getElementById("semFoto");
-
-  if (!alunoAtual) {
-    msg.innerText = "❌ Aluno não encontrado";
-    form.style.display = "none";
+  if (!aluno) {
+    msg.innerHTML = "❌ Aluno não encontrado";
+    document.getElementById("formulario").reset();
+    document.getElementById("mostraFoto").innerHTML = "";
     return;
   }
 
-  msg.innerText = "✅ Aluno encontrado";
-  form.style.display = "block";
+  // preencher formulário
+  document.getElementById("data").value = aluno.data || "";
+  document.getElementById("ra").value = aluno.ra || "";
+  document.getElementById("nome").value = aluno.nome || "";
+  document.getElementById("nascimento").value = aluno.nascimento ? aluno.nascimento.substr(0,10) : "";
+  document.getElementById("foto").value = aluno.foto || "";
+  document.getElementById("sala").value = aluno.sala || "";
+  document.getElementById("tutor").value = aluno.tutor || "";
+  document.getElementById("eletiva1").value = aluno.eletiva1 || "";
+  document.getElementById("eletiva2").value = aluno.eletiva2 || "";
 
-  // preencher campos
-  document.getElementById("ra").value = alunoAtual.ra;
-  document.getElementById("nome").value = alunoAtual.nome || "";
-  document.getElementById("data").value = alunoAtual.data || "";
-  document.getElementById("nascimento").value = alunoAtual.nascimento ? alunoAtual.nascimento.split("T")[0] : "";
-  document.getElementById("foto").value = alunoAtual.foto || "";
-  document.getElementById("sala").value = alunoAtual.sala || "";
-  document.getElementById("tutor").value = alunoAtual.tutor || "";
-  document.getElementById("eletiva1").value = alunoAtual.eletiva1 || "";
-  document.getElementById("eletiva2").value = alunoAtual.eletiva2 || "";
-
-  // foto preview
-  const fotoUrl = montarFoto(alunoAtual.foto);
-  if (fotoUrl) {
-    fotoPreview.src = fotoUrl;
-    fotoPreview.style.display = "block";
-    semFoto.style.display = "none";
-    fotoPreview.onclick = () => abrirPopup(fotoUrl);
+  // mostrar foto
+  const fotoID = aluno.foto;
+  const fotoURL = montarFoto(fotoID);
+  const divFoto = document.getElementById("mostraFoto");
+  if (fotoURL) {
+    divFoto.innerHTML = `<img class="foto" src="${fotoURL}" onclick="abrirPopup('${fotoURL}')">`;
   } else {
-    fotoPreview.style.display = "none";
-    semFoto.style.display = "flex";
+    divFoto.innerHTML = `<div class="sem-foto">❌</div>`;
   }
 }
 
 // salvar alterações
-function salvar(e) {
-  e.preventDefault();
-  if (!alunoAtual) return;
-
-  const payload = {
-    ra: alunoAtual.ra, // identificador
-    nome: document.getElementById("nome").value,
+function salvar() {
+  const data = {
     data: document.getElementById("data").value,
+    ra: document.getElementById("ra").value,
+    nome: document.getElementById("nome").value,
     nascimento: document.getElementById("nascimento").value,
     foto: document.getElementById("foto").value,
     sala: document.getElementById("sala").value,
@@ -159,17 +138,18 @@ function salvar(e) {
 
   fetch(url, {
     method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
+    body: JSON.stringify(data)
   })
   .then(r => r.json())
   .then(res => {
-    document.getElementById("msg").innerText = "✅ Alterações salvas com sucesso!";
-    carregar(); // recarrega dados
+    document.getElementById("msg").innerHTML = res.msg;
+    // atualizar local para refletir mudanças
+    const index = dados.findIndex(a => String(a.ra) === String(data.ra));
+    if (index !== -1) dados[index] = data;
   })
   .catch(err => {
+    document.getElementById("msg").innerHTML = "❌ Erro ao salvar";
     console.error(err);
-    document.getElementById("msg").innerText = "❌ Falha ao salvar alterações";
   });
 }
 
@@ -182,9 +162,7 @@ function fecharPopup(e) {
   if (e.target.tagName === "IMG") return;
   document.getElementById("popup").style.display = "none";
 }
-
-// iniciar
-carregar();
 </script>
+
 </body>
 </html>
