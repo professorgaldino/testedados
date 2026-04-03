@@ -16,8 +16,8 @@
 </head>
 <body>
 
-<h1>Consulta de Ocorrências 15</h1>
-<div class="loading">Carregando ocorrências...</div>
+<h1>Consulta de Ocorrências 16</h1>
+<div class="loading" id="loading">Carregando ocorrências...</div>
 <div class="error" id="error"></div>
 
 <table id="tabelaOcorrencias">
@@ -40,56 +40,51 @@
 </table>
 
 <script>
-  const urlWebApp = "https://script.google.com/macros/s/AKfycbxuLqZL8_w31EGMmGLx-ngQUVt3Om1NmMVCrst929PGi4wgCADTpbiuuHVRlET7iXDB/exec";
+  const urlWebApp = "https://script.google.com/macros/s/AKfycby8ee_iqmJuTW7oTYCbL064ITYLJ74h-U6F3gDkT28j9BKf6tq6sSmFsZ7d5vS4so4/exec";
   const tabela = document.getElementById("tabelaOcorrencias");
   const tbody = tabela.querySelector("tbody");
   const errorDiv = document.getElementById("error");
-  const loadingDiv = document.querySelector(".loading");
+  const loadingDiv = document.getElementById("loading");
 
-  async function carregarOcorrencias() {
-    try {
-      const response = await fetch(urlWebApp, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "consultar" })
-      });
+  // Função de callback chamada pelo JSONP
+  function mostrarOcorrencias(dados) {
+    loadingDiv.style.display = "none";
 
-      if (!response.ok) throw new Error("Erro HTTP: " + response.status);
-
-      const dados = await response.json();
-
-      if (!Array.isArray(dados) || dados.length === 0) {
-        errorDiv.textContent = "Nenhuma ocorrência encontrada.";
-        loadingDiv.style.display = "none";
-        return;
-      }
-
-      dados.forEach(o => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${o["Data Registro"] || ""}</td>
-          <td>${o["Hora Registro"] || ""}</td>
-          <td>${o.ra || ""}</td>
-          <td>${o.nome || ""}</td>
-          <td>${o.Sala || ""}</td>
-          <td>${o.Tutor || ""}</td>
-          <td>${o.Professor || ""}</td>
-          <td>${o["Descrição"] || ""}</td>
-          <td>${o["Ação Tomada"] || ""}</td>
-          <td>${o["Data do Fato"] || ""}</td>
-          <td>${o["Hora do Fato"] || ""}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      loadingDiv.style.display = "none";
-      tabela.style.display = "table";
-
-    } catch (err) {
-      loadingDiv.style.display = "none";
-      errorDiv.textContent = "Erro ao carregar ocorrências: " + err.message;
-      console.error(err);
+    if (!Array.isArray(dados) || dados.length === 0) {
+      errorDiv.textContent = "Nenhuma ocorrência encontrada.";
+      return;
     }
+
+    dados.forEach(o => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${o["Data Registro"] || ""}</td>
+        <td>${o["Hora Registro"] || ""}</td>
+        <td>${o.ra || ""}</td>
+        <td>${o.nome || ""}</td>
+        <td>${o.Sala || ""}</td>
+        <td>${o.Tutor || ""}</td>
+        <td>${o.Professor || ""}</td>
+        <td>${o["Descrição"] || ""}</td>
+        <td>${o["Ação Tomada"] || ""}</td>
+        <td>${o["Data do Fato"] || ""}</td>
+        <td>${o["Hora do Fato"] || ""}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tabela.style.display = "table";
+  }
+
+  // Carrega dados via JSONP
+  function carregarOcorrencias() {
+    const script = document.createElement("script");
+    script.src = urlWebApp + "?action=consultar&callback=mostrarOcorrencias";
+    script.onerror = () => {
+      loadingDiv.style.display = "none";
+      errorDiv.textContent = "Erro ao carregar ocorrências.";
+    };
+    document.body.appendChild(script);
   }
 
   // Executa ao carregar a página
