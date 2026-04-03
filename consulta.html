@@ -105,7 +105,7 @@ button {
 <body>
 
 <div class="container">
-  <h2>🔍 Consulta de Alunos 15</h2>
+  <h2>🔍 Consulta de Alunos 16</h2>
   <input type="text" id="busca" placeholder="Pesquisar por RA, Nome ou Sala">
 
   <div id="resultado"></div>
@@ -136,7 +136,7 @@ function montarFoto(id) {
   if (!id) return null;
   id = String(id).trim();
   if (id.length < 10) return null;
-  return "https://lh3.googleusercontent.com/d/" + id;
+  return "https://drive.google.com/uc?export=view&id=" + id;
 }
 
 // carregar dados
@@ -150,20 +150,19 @@ function carregar() {
     });
 }
 
-// busca absoluta
+// busca parcial funcional
 document.getElementById("busca").addEventListener("input", () => {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
 
-  // se estiver vazio, mostrar todos
   if (!valor) {
     filtrados = dados;
   } else {
     filtrados = dados.filter(a => {
-      const ra = String(a.ra || "").toLowerCase().trim();
-      const nome = (a.nome || "").toLowerCase().trim();
-      const sala = (a.sala || "").toLowerCase().trim();
+      const ra = String(a.ra || "").toLowerCase();
+      const nome = (a.nome || "").toLowerCase();
+      const sala = (a.sala || "").toLowerCase();
 
-      return ra === valor || nome === valor || sala === valor;
+      return ra.includes(valor) || nome.includes(valor) || sala.includes(valor);
     });
   }
 
@@ -197,7 +196,10 @@ function renderizar() {
           <strong>${a.nome}</strong><br>
           RA: ${a.ra}<br>
           Sala: ${a.sala}<br>
-          Tutor: ${a.tutor}
+          Tutor: ${a.tutor}<br>
+          Nascimento: ${a.nascimento || '-'}<br>
+          Eletiva1: ${a.eletiva1 || '-'}<br>
+          Eletiva2: ${a.eletiva2 || '-'}
         </div>
       </div>
     `;
@@ -224,8 +226,7 @@ function anterior() {
 
 // popup
 function abrirPopup(src) {
-  const popup = document.getElementById("popup");
-  popup.style.display = "flex";
+  document.getElementById("popup").style.display = "flex";
   document.getElementById("imgPopup").src = src;
 }
 
