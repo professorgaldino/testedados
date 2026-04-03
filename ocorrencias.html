@@ -15,7 +15,7 @@
 </head>
 <body>
 <div class="container">
-  <h2>Registro de Ocorrências 3</h2>
+  <h2>Registro de Ocorrências 4</h2>
   
   <label>Selecione a Sala:</label>
   <select id="salaSelect">
@@ -33,8 +33,11 @@
   <label>RA do Aluno:</label>
   <input type="text" id="ra" readonly>
 
-  <label>Data e Hora do Fato:</label>
-  <input type="datetime-local" id="dataHoraFato">
+  <label>Data do Fato:</label>
+  <input type="date" id="dataFato">
+
+  <label>Hora do Fato:</label>
+  <input type="time" id="horaFato">
 
   <label>Nome do Professor:</label>
   <input type="text" id="professor">
@@ -49,9 +52,8 @@
 </div>
 
 <script>
-  // URL do WebApp atualizado
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwURvs1Gl2efuA72dB174XOjSQy25h3ji7qFDFtHLu-5gpArf1pW2G84e90CDulwkKX/exec";
-  // URL para buscar alunos externos
+  // Novo WebApp de ocorrências
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzeExwAUYhwDTDMo2D1qVODAk3cDjOlPy4NGrs_XIN8hOcob7kEOpXYZwPRYVM9v0Wz/exec";
   const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
   let alunosExternos = [];
@@ -65,8 +67,6 @@
     .then(res => res.json())
     .then(data => {
       alunosExternos = data;
-
-      // Criar lista única de salas
       const salasSet = new Set(alunosExternos.map(a => a.sala).filter(Boolean));
       salas = Array.from(salasSet).sort();
       salas.forEach(sala => {
@@ -93,7 +93,6 @@
       alunoSelect.appendChild(opt);
     });
 
-    // Limpar tutor e RA
     document.getElementById("tutor").value = "";
     document.getElementById("ra").value = "";
   });
@@ -108,20 +107,33 @@
   // Enviar ocorrência
   function enviar() {
     const ra = document.getElementById("ra").value;
-    const nome = alunoSelect.selectedOptions[0].getAttribute("data-nome");
+    const nome = alunoSelect.selectedOptions[0]?.getAttribute("data-nome");
     const professor = document.getElementById("professor").value;
     const descricao = document.getElementById("descricao").value;
     const acao = document.getElementById("acao").value;
-    const dataHoraFato = document.getElementById("dataHoraFato").value;
+    const dataFato = document.getElementById("dataFato").value;
+    const horaFato = document.getElementById("horaFato").value;
 
-    if(!ra || !professor || !descricao || !dataHoraFato) {
-      alert("Preencha RA, Professor, Descrição e Data/Hora do Fato!");
+    if(!ra || !professor || !descricao || !dataFato || !horaFato) {
+      alert("Preencha RA, Professor, Descrição, Data e Hora do Fato!");
       return;
     }
 
+    // Formatar Data e Hora como dd/mm/yyyy e HH:mm
+    const dataParts = dataFato.split("-");
+    const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
+
     fetch(WEBAPP_URL, {
       method: "POST",
-      body: JSON.stringify({ra, nome, professor, descricao, acao, dataHoraFato})
+      body: JSON.stringify({
+        ra,
+        nome,
+        professor,
+        descricao,
+        acao,
+        dataFato: dataFormatada,
+        horaFato
+      })
     })
     .then(res => res.json())
     .then(data => {
@@ -136,7 +148,8 @@
       document.getElementById("professor").value = "";
       document.getElementById("descricao").value = "";
       document.getElementById("acao").value = "";
-      document.getElementById("dataHoraFato").value = "";
+      document.getElementById("dataFato").value = "";
+      document.getElementById("horaFato").value = "";
     })
     .catch(err => alert("Erro ao enviar ocorrência: " + err));
   }
