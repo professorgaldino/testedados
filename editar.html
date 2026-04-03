@@ -10,6 +10,16 @@ input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
 button { background: #4CAF50; color: white; border: none; cursor: pointer; }
 h2 { text-align: center; }
 label { font-weight: bold; }
+.mensagem {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  display: none;
+  font-weight: bold;
+}
+.mensagem.sucesso { background: #d4edda; color: #155724; }
+.mensagem.erro { background: #f8d7da; color: #721c24; }
+
 .debug { background: #eee; padding: 10px; margin-top: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
 
 /* 🔥 POPUP FOTO */
@@ -72,10 +82,13 @@ label { font-weight: bold; }
 <body>
 
 <div class="container">
-  <h2>✏️ Editar Alunos 9</h2>
+  <h2>✏️ Editar Alunos 10</h2>
 
   <input type="text" id="busca" placeholder="Digite RA ou Nome">
   <button onclick="buscar()">Buscar</button>
+
+  <!-- mensagem de sucesso/falha -->
+  <div id="mensagem" class="mensagem"></div>
 
   <div id="formulario">
     <label>RA</label>
@@ -126,7 +139,7 @@ fetch(url)
     document.getElementById('debug').innerText = "✅ Dados carregados:\n" + JSON.stringify(dados, null, 2);
   });
 
-// 🔥 montar foto (Google Drive) usando lh3
+// 🔥 montar foto (Google Drive)
 function montarFoto(id) {
   if (!id) return null;
   id = String(id).trim();
@@ -144,6 +157,8 @@ function buscar() {
   });
 
   const debug = document.getElementById('debug');
+  const msg = document.getElementById('mensagem');
+  msg.style.display = 'none';
 
   if (!alunoAtual) {
     debug.innerText = "❌ Aluno não encontrado";
@@ -193,17 +208,24 @@ function salvar() {
     eletiva2: document.getElementById('eletiva2').value
   };
 
+  const msg = document.getElementById('mensagem');
+  msg.style.display = 'block';
+
   fetch(url, {
     method: "POST",
     body: JSON.stringify(postData)
   })
   .then(res => res.text())
   .then(resp => {
-    document.getElementById('debug').innerText = "✅ Alteração enviada com sucesso!\n\nPOST enviado:\n" + JSON.stringify(postData, null, 2) + "\n\nResposta do servidor:\n" + resp;
+    msg.className = 'mensagem sucesso';
+    msg.innerText = "✅ Alteração enviada com sucesso!";
+    document.getElementById('debug').innerText = "POST enviado:\n" + JSON.stringify(postData, null, 2) + "\n\nResposta do servidor:\n" + resp;
     buscar(); // recarrega o aluno atualizado
   })
   .catch(err => {
-    document.getElementById('debug').innerText = "❌ Erro ao salvar:\n" + err;
+    msg.className = 'mensagem erro';
+    msg.innerText = "❌ Erro ao salvar alterações!";
+    document.getElementById('debug').innerText = "Erro:\n" + err;
   });
 }
 
