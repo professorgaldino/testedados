@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Carômetro de Alunos</title>
+  <title>DEBUG Alunos</title>
 
   <style>
     body {
@@ -11,37 +11,12 @@
       padding: 20px;
     }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .msg {
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
     .aluno {
       background: white;
-      padding: 12px;
+      padding: 10px;
       margin-bottom: 10px;
       border-radius: 8px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-left: 5px solid #4CAF50;
     }
 
     img {
@@ -49,96 +24,84 @@
       height: 70px;
       border-radius: 50%;
       object-fit: cover;
+      display: block;
+      margin-bottom: 10px;
     }
 
-    .info {
-      font-size: 14px;
+    .debug {
+      background: #eee;
+      padding: 8px;
+      font-size: 12px;
+      margin-top: 5px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h2>📋 Lista de alunos 9</h2>
+<h2>🔍 DEBUG - Dados dos Alunos 10</h2>
 
-  <button onclick="carregar()">Carregar Alunos</button>
+<button onclick="carregar()">Carregar Dados</button>
 
-  <div class="msg" id="msg"></div>
-  <div id="resultado"></div>
-</div>
+<div id="resultado"></div>
 
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
-// 🔥 Função robusta para montar a foto
 function montarFoto(id) {
   if (!id) return "https://via.placeholder.com/70";
 
-  try {
-    id = id.toString().trim(); // remove espaços
+  id = String(id).trim();
 
-    // Debug
-    console.log("ID recebido:", id);
-
-    return "https://drive.google.com/uc?export=view&id=" + id;
-  } catch (e) {
-    return "https://via.placeholder.com/70";
-  }
-}
-
-// 🔥 Formatar data
-function formatarData(data) {
-  if (!data) return "";
-  const d = new Date(data);
-  return d.toLocaleDateString("pt-BR");
+  return "https://drive.google.com/uc?export=view&id=" + id;
 }
 
 function carregar() {
-  const resultado = document.getElementById("resultado");
-  const msg = document.getElementById("msg");
-
-  resultado.innerHTML = "";
-  msg.innerHTML = "Carregando dados...";
+  const div = document.getElementById("resultado");
+  div.innerHTML = "Carregando...";
 
   fetch(url)
-    .then(res => {
-      if (!res.ok) throw new Error("Erro no servidor");
-      return res.json();
-    })
+    .then(r => r.json())
     .then(data => {
 
-      if (!Array.isArray(data)) throw new Error("Resposta inválida");
+      div.innerHTML = "";
 
-      console.log("Dados recebidos:", data); // 🔍 debug geral
+      data.forEach((a, i) => {
 
-      if (data.length === 0) {
-        msg.innerHTML = "❌ Nenhum aluno encontrado";
-        return;
-      }
+        console.log("ALUNO:", a); // 🔥 console
 
-      msg.innerHTML = "✅ Dados carregados";
-
-      data.forEach(a => {
-        resultado.innerHTML += `
+        div.innerHTML += `
           <div class="aluno">
-            <img src="${montarFoto(a.foto)}" onerror="this.src='https://via.placeholder.com/70'">
-            <div class="info">
-              <strong>${a.nome}</strong><br>
-              RA: ${a.ra}<br>
-              Nascimento: ${formatarData(a.nascimento)}<br>
-              Sala: ${a.sala}<br>
-              Tutor: ${a.tutor}<br>
-              Eletivas: ${a.eletiva1} / ${a.eletiva2}
+
+            <img src="${montarFoto(a.foto)}"
+                 onerror="this.src='https://via.placeholder.com/70'">
+
+            <strong>${a.nome}</strong><br>
+
+            RA: ${a.ra}<br>
+            Nascimento: ${a.nascimento}<br>
+            Sala: ${a.sala}<br>
+            Tutor: ${a.tutor}<br>
+            Eletiva1: ${a.eletiva1}<br>
+            Eletiva2: ${a.eletiva2}<br>
+
+            <div class="debug">
+FOTO (valor bruto): ${a.foto}
+URL gerada: ${montarFoto(a.foto)}
+
+OBJETO COMPLETO:
+${JSON.stringify(a, null, 2)}
             </div>
+
           </div>
         `;
       });
 
     })
     .catch(err => {
-      msg.innerHTML = "❌ Falha ao carregar dados";
-      console.error("Erro:", err);
+      div.innerHTML = "Erro ao carregar";
+      console.error(err);
     });
 }
 </script>
