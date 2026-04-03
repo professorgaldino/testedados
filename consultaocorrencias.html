@@ -2,23 +2,35 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta de Ocorrências 17</title>
+  <title>Consulta de Ocorrências com Filtro</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
     h1 { text-align: center; }
+    .filtros { margin-bottom: 20px; text-align: center; }
+    .filtros input, .filtros select { padding: 5px 10px; margin: 5px; font-size: 14px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
     th { background: #eee; }
     tr:nth-child(even) { background: #f9f9f9; }
     .error { color: red; text-align: center; margin-top: 20px; }
     .loading { text-align: center; font-weight: bold; }
+    .total { margin-top: 10px; font-weight: bold; text-align: center; }
   </style>
 </head>
 <body>
 
-<h1>Consulta de Ocorrências</h1>
+<h1>Consulta de Ocorrências 18</h1>
+
+<div class="filtros">
+  <label>Sala: <input type="text" id="filtroSala" placeholder="Ex: 6A"></label>
+  <label>Data Inicial: <input type="date" id="filtroDataInicial"></label>
+  <label>Data Final: <input type="date" id="filtroDataFinal"></label>
+  <button onclick="aplicarFiltro()">Filtrar</button>
+</div>
+
 <div class="loading" id="loading">Carregando ocorrências...</div>
 <div class="error" id="error"></div>
+<div class="total" id="totalOcorrencias"></div>
 
 <table id="tabelaOcorrencias">
   <thead>
@@ -41,12 +53,14 @@
 
 <script>
   const urlWebApp = "https://script.google.com/macros/s/AKfycby8ee_iqmJuTW7oTYCbL064ITYLJ74h-U6F3gDkT28j9BKf6tq6sSmFsZ7d5vS4so4/exec";
+  let todasOcorrencias = [];
   const tabela = document.getElementById("tabelaOcorrencias");
   const tbody = tabela.querySelector("tbody");
   const errorDiv = document.getElementById("error");
   const loadingDiv = document.getElementById("loading");
+  const totalDiv = document.getElementById("totalOcorrencias");
 
-  // Formata a data ISO para dd/mm/yyyy
+  // Formata data ISO -> dd/mm/yyyy
   function formatarData(isoString) {
     if (!isoString) return "";
     const d = new Date(isoString);
@@ -56,7 +70,7 @@
     return `${dia}/${mes}/${ano}`;
   }
 
-  // Formata a hora ISO para HH:mm
+  // Formata hora ISO -> HH:mm
   function formatarHora(isoString) {
     if (!isoString) return "";
     const d = new Date(isoString);
@@ -65,6 +79,7 @@
     return `${horas}:${minutos}`;
   }
 
+  // Callback JSONP
   function mostrarOcorrencias(dados) {
     loadingDiv.style.display = "none";
 
@@ -73,7 +88,33 @@
       return;
     }
 
-    dados.forEach(o => {
+    todasOcorrencias = dados;
+    aplicarFiltro(); // mostra todos inicialmente
+  }
+
+  function aplicarFiltro() {
+    const sala = document.getElementById("filtroSala").value.trim().toUpperCase();
+    const dataInicio = document.getElementById("filtroDataInicial").value;
+    const dataFim = document.getElementById("filtroDataFinal").value;
+
+    tbody.innerHTML = "";
+    errorDiv.textContent = "";
+
+    const filtradas = todasOcorrencias.filter(o => {
+      let ok = true;
+      if (sala) ok = ok && o.Sala && o.Sala.toUpperCase() === sala;
+      if (dataInicio) ok = ok && o["Data do Fato"] && new Date(o["Data do Fato"]) >= new Date(dataInicio);
+      if (dataFim) ok = ok && o["Data do Fato"] && new Date(o["Data do Fato"]) <= new Date(dataFim);
+      return ok;
+    });
+
+    if (filtradas.length === 0) {
+      errorDiv.textContent = "Nenhuma ocorrência encontrada para os filtros.";
+    }
+
+    totalDiv.textContent = `Total de ocorrências: ${filtradas.length}`;
+
+    filtradas.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${formatarData(o["Data Registro"])}</td>
@@ -91,7 +132,7 @@
       tbody.appendChild(tr);
     });
 
-    tabela.style.display = "table";
+    tabela.style.display = filtradas.length ? "table" : "none";
   }
 
   function carregarOcorrencias() {
