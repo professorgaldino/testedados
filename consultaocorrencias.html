@@ -1,119 +1,134 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Consulta de Ocorrências</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; }
-label { display: block; margin-top: 10px; }
-select, input { margin-top: 5px; padding: 5px; width: 200px; }
-button { margin-top: 15px; padding: 10px 15px; }
-table { border-collapse: collapse; margin-top: 20px; width: 100%; }
-th, td { border: 1px solid #333; padding: 5px; text-align: left; }
-#debug { margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Consulta de Ocorrências</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    select, input { padding: 5px; margin: 5px; }
+    button { padding: 5px 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    a.whatsapp { color: green; text-decoration: none; font-weight: bold; }
+  </style>
 </head>
 <body>
+  <h1>Consulta de Ocorrências 11</h1>
 
-<h2>Consulta de Ocorrências 9</h2>
+  <div>
+    <label for="sala">Sala:</label>
+    <select id="sala">
+      <option value="">Todas</option>
+    </select>
 
-<label for="sala">Selecione a Sala:</label>
-<select id="sala"><option value="">Carregando...</option></select>
+    <label for="dataInicio">Data Início:</label>
+    <input type="date" id="dataInicio">
 
-<label for="dataInicial">Data Inicial:</label>
-<input type="date" id="dataInicial">
+    <label for="dataFim">Data Fim:</label>
+    <input type="date" id="dataFim">
 
-<label for="dataFinal">Data Final:</label>
-<input type="date" id="dataFinal">
+    <button onclick="consultar()">Consultar</button>
+  </div>
 
-<button id="consultar">Consultar</button>
+  <table id="tabelaResultados">
+    <thead>
+      <tr>
+        <th>Data Fato</th>
+        <th>Hora Fato</th>
+        <th>RA</th>
+        <th>Aluno</th>
+        <th>Sala</th>
+        <th>Tutor</th>
+        <th>Professor</th>
+        <th>Descrição</th>
+        <th>Ação Tomada</th>
+        <th>WhatsApp</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 
-<h3>Resultados:</h3>
-<div id="resultado"></div>
+  <script>
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyRzOZeSZ0AHi_os7tuNlOEdI4FOVya-lakiMA_0G5bffe05B5OvCOw7ZZx0EPDPzKk/exec";
 
-<h3>Debug JSON:</h3>
-<div id="debug"></div>
-
-<script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyRzOZeSZ0AHi_os7tuNlOEdI4FOVya-lakiMA_0G5bffe05B5OvCOw7ZZx0EPDPzKk/exec";
-
-// Função para carregar salas
-async function carregarSalas() {
-    const select = document.getElementById("sala");
-    select.innerHTML = "<option value=''>Carregando...</option>";
-    try {
+    // Carrega salas únicas ao abrir a página
+    window.onload = async () => {
+      try {
         const response = await fetch(WEBAPP_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "salas" }),
-            headers: { "Content-Type": "application/json" }
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "salas" })
         });
         const salas = await response.json();
-        select.innerHTML = "<option value=''>Todas</option>";
+        const select = document.getElementById("sala");
         salas.forEach(s => {
-            const opt = document.createElement("option");
-            opt.value = s;
-            opt.textContent = s;
-            select.appendChild(opt);
+          const option = document.createElement("option");
+          option.value = s;
+          option.textContent = s;
+          select.appendChild(option);
         });
-    } catch (err) {
-        select.innerHTML = "<option value=''>Erro ao carregar salas</option>";
-        document.getElementById("debug").textContent = "Erro ao carregar salas: " + err;
-    }
-}
+      } catch (err) {
+        console.error("Erro ao carregar salas:", err);
+      }
+    };
 
-// Função para consultar ocorrências
-async function consultarOcorrencias() {
-    const sala = document.getElementById("sala").value;
-    const dataInicial = document.getElementById("dataInicial").value;
-    const dataFinal = document.getElementById("dataFinal").value;
+    // Função de consulta
+    async function consultar() {
+      const sala = document.getElementById("sala").value;
+      const dataInicio = document.getElementById("dataInicio").value;
+      const dataFim = document.getElementById("dataFim").value;
 
-    document.getElementById("resultado").innerHTML = "Consultando...";
-    document.getElementById("debug").textContent = "";
+      const tbody = document.querySelector("#tabelaResultados tbody");
+      tbody.innerHTML = "<tr><td colspan='10'>Carregando...</td></tr>";
 
-    try {
+      try {
         const response = await fetch(WEBAPP_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "consultar",
-                sala: sala,
-                dataInicial: dataInicial,
-                dataFinal: dataFinal
-            }),
-            headers: { "Content-Type": "application/json" }
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            action: "consultar",
+            sala: sala,
+            dataInicial: dataInicio,
+            dataFinal: dataFim
+          })
         });
-        const ocorrencias = await response.json();
-        document.getElementById("debug").textContent = JSON.stringify(ocorrencias, null, 2);
+        const dados = await response.json();
 
-        if (ocorrencias.length === 0) {
-            document.getElementById("resultado").innerHTML = "<p>Nenhuma ocorrência encontrada.</p>";
-            return;
+        if (dados.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='10'>Nenhuma ocorrência encontrada</td></tr>";
+          return;
         }
 
-        // Monta tabela
-        let html = "<table><thead><tr>";
-        const cols = Object.keys(ocorrencias[0]);
-        cols.forEach(c => html += `<th>${c}</th>`);
-        html += "</tr></thead><tbody>";
-        ocorrencias.forEach(o => {
-            html += "<tr>";
-            cols.forEach(c => html += `<td>${o[c]}</td>`);
-            html += "</tr>";
+        tbody.innerHTML = "";
+        dados.forEach(o => {
+          const tr = document.createElement("tr");
+          // Monta link para WhatsApp
+          const mensagem = `Ocorrência para ${o.nome} (${o.ra})\nData do Fato: ${o["Data do Fato"]}\nHora: ${o["Hora do Fato"]}\nProfessor: ${o.Professor}\nDescrição: ${o["Descrição"]}\nAção: ${o["Ação Tomada"]}`;
+          const numero = o.Tutor === "Everton" ? "5519990020650" : "551996785799"; // ajustar conforme seu mapeamento
+          const waLink = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+          tr.innerHTML = `
+            <td>${o["Data do Fato"] || ""}</td>
+            <td>${o["Hora do Fato"] || ""}</td>
+            <td>${o.ra || ""}</td>
+            <td>${o.nome || ""}</td>
+            <td>${o.Sala || ""}</td>
+            <td>${o.Tutor || ""}</td>
+            <td>${o.Professor || ""}</td>
+            <td>${o["Descrição"] || ""}</td>
+            <td>${o["Ação Tomada"] || ""}</td>
+            <td><a class="whatsapp" href="${waLink}" target="_blank">WhatsApp</a></td>
+          `;
+          tbody.appendChild(tr);
         });
-        html += "</tbody></table>";
-        document.getElementById("resultado").innerHTML = html;
-
-    } catch (err) {
-        document.getElementById("resultado").innerHTML = "<p>Erro ao consultar ocorrências.</p>";
-        document.getElementById("debug").textContent = "Erro ao consultar: " + err;
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan='10'>Erro: ${err.message}</td></tr>`;
+        console.error(err);
+      }
     }
-}
-
-// Eventos
-document.getElementById("consultar").addEventListener("click", consultarOcorrencias);
-
-// Carrega salas ao abrir a página
-carregarSalas();
-</script>
-
+  </script>
 </body>
 </html>
