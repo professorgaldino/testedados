@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Lista de Alunos</title>
+  <title>Carômetro de Alunos</title>
 
   <style>
     body {
@@ -12,14 +12,14 @@
     }
 
     .container {
-      max-width: 700px;
+      max-width: 800px;
       margin: auto;
     }
 
     button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       background: #4CAF50;
       color: white;
       border: none;
@@ -34,17 +34,17 @@
 
     .aluno {
       background: white;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 10px;
       border-radius: 8px;
       display: flex;
-      gap: 10px;
+      gap: 15px;
       align-items: center;
     }
 
     img {
-      width: 60px;
-      height: 60px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       object-fit: cover;
     }
@@ -54,7 +54,7 @@
 <body>
 
 <div class="container">
-  <h2>📋 Todos os Alunos 6</h2>
+  <h2>📋 Carômetro de Alunos</h2>
 
   <button onclick="carregar()">Carregar Alunos</button>
 
@@ -64,6 +64,12 @@
 
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
+
+// 🔥 Agora recebe apenas o ID
+function montarFoto(id) {
+  if (!id) return "https://via.placeholder.com/70";
+  return "https://drive.google.com/uc?export=view&id=" + id;
+}
 
 function carregar() {
   const resultado = document.getElementById("resultado");
@@ -91,7 +97,7 @@ function carregar() {
       data.forEach(a => {
         resultado.innerHTML += `
           <div class="aluno">
-            <img src="${a.foto || 'https://via.placeholder.com/60'}">
+            <img src="${montarFoto(a.foto)}">
             <div>
               <strong>${a.nome}</strong><br>
               RA: ${a.ra}<br>
