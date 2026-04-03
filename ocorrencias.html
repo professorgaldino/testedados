@@ -15,7 +15,12 @@
 </head>
 <body>
 <div class="container">
-  <h2>Registro de Ocorrências</h2>
+  <h2>Registro de Ocorrências 2</h2>
+  
+  <label>Selecione a Sala:</label>
+  <select id="salaSelect">
+    <option value="">Escolha uma sala</option>
+  </select>
   
   <label>Selecione o Aluno:</label>
   <select id="alunoSelect">
@@ -41,33 +46,56 @@
 </div>
 
 <script>
-  // URL do WebApp de ocorrências
+  // URLs
   const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxgsks-F3_Jqp6TZmBBkiPMQrewUXmTa3fSe6OdAs-6Fntd3AnKGGbIAAWOqziVNwpX/exec";
-
-  // Carregar alunos do outro WebApp (exemplo da URL que você me passou anteriormente)
   const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
   let alunosExternos = [];
+  let salas = [];
 
-  // Buscar alunos externos e popular dropdown
+  const salaSelect = document.getElementById("salaSelect");
+  const alunoSelect = document.getElementById("alunoSelect");
+
+  // Buscar alunos externos e popular salas e dropdown
   fetch(ALUNOS_URL)
     .then(res => res.json())
     .then(data => {
       alunosExternos = data;
-      const select = document.getElementById("alunoSelect");
-      alunosExternos.forEach(aluno => {
+
+      // Criar lista única de salas
+      const salasSet = new Set(alunosExternos.map(a => a.sala).filter(Boolean));
+      salas = Array.from(salasSet).sort();
+      salas.forEach(sala => {
         const opt = document.createElement("option");
-        opt.value = aluno.ra;
-        opt.textContent = aluno.nome + " (" + aluno.sala + ")";
-        opt.setAttribute("data-tutor", aluno.tutor);
-        opt.setAttribute("data-nome", aluno.nome);
-        select.appendChild(opt);
+        opt.value = sala;
+        opt.textContent = sala;
+        salaSelect.appendChild(opt);
       });
     })
     .catch(err => alert("Erro ao carregar alunos: " + err));
 
+  // Quando a sala mudar, filtrar alunos
+  salaSelect.addEventListener("change", function(){
+    const selectedSala = this.value;
+    alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
+    
+    const alunosFiltrados = alunosExternos.filter(a => a.sala === selectedSala);
+    alunosFiltrados.forEach(aluno => {
+      const opt = document.createElement("option");
+      opt.value = aluno.ra;
+      opt.textContent = aluno.nome;
+      opt.setAttribute("data-tutor", aluno.tutor);
+      opt.setAttribute("data-nome", aluno.nome);
+      alunoSelect.appendChild(opt);
+    });
+
+    // Limpar tutor e RA
+    document.getElementById("tutor").value = "";
+    document.getElementById("ra").value = "";
+  });
+
   // Atualizar tutor e RA ao selecionar aluno
-  document.getElementById("alunoSelect").addEventListener("change", function(){
+  alunoSelect.addEventListener("change", function(){
     const selected = this.options[this.selectedIndex];
     document.getElementById("tutor").value = selected.getAttribute("data-tutor") || "";
     document.getElementById("ra").value = selected.value || "";
@@ -76,7 +104,7 @@
   // Enviar ocorrência
   function enviar() {
     const ra = document.getElementById("ra").value;
-    const nome = document.getElementById("alunoSelect").selectedOptions[0].getAttribute("data-nome");
+    const nome = alunoSelect.selectedOptions[0].getAttribute("data-nome");
     const professor = document.getElementById("professor").value;
     const descricao = document.getElementById("descricao").value;
     const acao = document.getElementById("acao").value;
@@ -92,16 +120,17 @@
     })
     .then(res => res.json())
     .then(data => {
-      // Abrir WhatsApp com mensagem pronta
       window.open(data.whatsapp, "_blank");
       alert("Ocorrência registrada com sucesso!");
-      // Limpar campos do formulário
+
+      // Resetar campos
+      salaSelect.selectedIndex = 0;
+      alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
+      document.getElementById("tutor").value = "";
+      document.getElementById("ra").value = "";
       document.getElementById("professor").value = "";
       document.getElementById("descricao").value = "";
       document.getElementById("acao").value = "";
-      document.getElementById("alunoSelect").selectedIndex = 0;
-      document.getElementById("tutor").value = "";
-      document.getElementById("ra").value = "";
     })
     .catch(err => alert("Erro ao enviar ocorrência: " + err));
   }
