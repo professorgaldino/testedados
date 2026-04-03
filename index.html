@@ -1,160 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Gestão de Alunos</title>
-<style>
-  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; padding: 20px; }
-  h1 { color: #333; margin-bottom: 20px; }
-  form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
-  form input, form select, form button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
-  form button { background-color: #007bff; color: white; border: none; cursor: pointer; transition: background 0.2s; }
-  form button:hover { background-color: #0056b3; }
-  .success { color: green; margin: 10px 0; }
-  .error { color: red; margin: 10px 0; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-  th { background-color: #007bff; color: white; }
-  tr:hover { background-color: #f1f9ff; }
-  img { border-radius: 4px; max-width:50px; }
-  .filtros { display: flex; gap: 10px; margin-bottom: 20px; }
-  .filtros input, .filtros button { flex: 1; padding: 8px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Cadastro de Alunos</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .msg {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>Gestão de Alunos</h1>
+<div class="container">
+  <h2>Cadastro de Alunos</h2>
 
-<form id="formAluno">
-  <div id="mensagem"></div>
-  RA: <input type="text" name="RA" required>
-  Nome Completo: <input type="text" name="Nome Completo">
-  Data Nascimento: <input type="date" name="Data Nascimento">
-  Tutor: <input type="text" name="Tutor">
-  Eletiva Semestre 1: <input type="text" name="Eletiva Semestre 1">
-  Eletiva Semestre 2: <input type="text" name="Eletiva Semestre 2">
-  Foto URL: <input type="text" name="Foto URL">
-  Sala: <input type="text" name="Sala">
-  <button type="submit">Enviar</button>
-</form>
+  <form id="form">
+    <input type="text" id="nome" placeholder="Nome" required>
+    <input type="number" id="idade" placeholder="Idade" required min="0">
+    <button type="submit">Enviar</button>
+  </form>
 
-<div class="filtros">
-  <input type="text" id="filtroSala" placeholder="Filtrar por Sala">
-  <button onclick="filtrarSala()">Filtrar</button>
-  <input type="text" id="buscaAluno" placeholder="Buscar por RA ou Nome">
-  <button onclick="buscarAluno()">Buscar</button>
+  <div class="msg" id="msg"></div>
 </div>
 
-<table id="tabelaAlunos">
-  <thead>
-    <tr>
-      <th>RA</th><th>Nome</th><th>Data Nasc.</th><th>Tutor</th><th>Eletiva 1</th><th>Eletiva 2</th><th>Foto</th><th>Sala</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
 <script>
-const sheetUrl = 'https://script.google.com/macros/s/AKfycbzWCXZuHlrQvO_vwjZzqY9grco9lmB0HpxGZAbNuzdkSC6Og5tGF51Y4kznOgzsvvAuRw/exec';
-const tabela = document.querySelector('#tabelaAlunos tbody');
-const mensagem = document.getElementById('mensagem');
-let alunosCache = [];
-
-function mostrarMensagem(texto, tipo='success'){
-  mensagem.innerHTML = `<div class="${tipo}">${texto}</div>`;
-}
-
-// Carregar alunos
-async function carregarAlunos(){
-  try{
-    const res = await fetch(sheetUrl);
-    if(!res.ok) throw new Error('Não foi possível acessar o Web App');
-    const data = await res.json();
-    alunosCache = data;
-    renderizarTabela(data);
-  }catch(err){
-    console.error(err);
-    mostrarMensagem(`Erro ao carregar alunos: ${err.message}`,'error');
-  }
-}
-
-// Renderizar tabela
-function renderizarTabela(alunos){
-  tabela.innerHTML = '';
-  if(alunos.length === 0){
-    tabela.innerHTML = '<tr><td colspan="8">Nenhum aluno encontrado</td></tr>';
-    return;
-  }
-  alunos.forEach(a=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${a.RA}</td>
-      <td>${a["Nome Completo"]}</td>
-      <td>${a["Data Nascimento"]}</td>
-      <td>${a.Tutor}</td>
-      <td>${a["Eletiva Semestre 1"]}</td>
-      <td>${a["Eletiva Semestre 2"]}</td>
-      <td>${a["Foto URL"] ? `<img src="${a["Foto URL"]}">` : ''}</td>
-      <td>${a.Sala}</td>
-    `;
-    tabela.appendChild(tr);
-  });
-}
-
-// Inserir ou atualizar aluno
-document.getElementById('formAluno').addEventListener('submit', async e=>{
+document.getElementById("form").addEventListener("submit", function(e) {
   e.preventDefault();
-  const form = e.target;
-  const dados = {};
-  Array.from(form.elements).forEach(el=>{ if(el.name) dados[el.name] = el.value; });
-  try{
-    const res = await fetch(sheetUrl,{
-      method:'POST',
-      body: JSON.stringify(dados),
-      headers:{'Content-Type':'application/json'}
-    });
-    const result = await res.json();
-    if(result.status==="ok"){
-      mostrarMensagem('Aluno inserido/atualizado com sucesso!');
-      form.reset();
-      carregarAlunos();
-    }else{
-      mostrarMensagem('Erro ao inserir/atualizar aluno','error');
-    }
-  }catch(err){
+
+  const msg = document.getElementById("msg");
+
+  const data = {
+    nome: document.getElementById("nome").value,
+    idade: document.getElementById("idade").value
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbzP3B0Tg8B63eqjusc5jstzrO1Tp6pnXUK-J59quzT2n-kB315rbEP85T3QASjPKO68Ow/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(res => {
+    msg.innerHTML = "✅ Enviado com sucesso!";
+    document.getElementById("form").reset();
+  })
+  .catch(err => {
+    msg.innerHTML = "❌ Erro ao enviar!";
     console.error(err);
-    mostrarMensagem(`Erro: ${err.message}`,'error');
-  }
+  });
 });
-
-// Filtrar por sala
-function filtrarSala(){
-  const sala = document.getElementById('filtroSala').value.trim().toLowerCase();
-  if(!sala) return renderizarTabela(alunosCache);
-  const filtrados = alunosCache.filter(a => a.Sala && a.Sala.toLowerCase() === sala);
-  renderizarTabela(filtrados);
-}
-
-// Buscar aluno por RA ou nome
-function buscarAluno(){
-  const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
-  const encontrado = alunosCache.find(a =>
-    (a.RA && a.RA.toLowerCase() === termo) ||
-    (a["Nome Completo"] && a["Nome Completo"].toLowerCase().includes(termo))
-  );
-  if(encontrado){
-    const form = document.getElementById('formAluno');
-    Array.from(form.elements).forEach(el=>{
-      if(el.name) el.value = encontrado[el.name] || '';
-    });
-    mostrarMensagem('Aluno encontrado. Pode editar e enviar.');
-  }else{
-    mostrarMensagem('Aluno não encontrado','error');
-  }
-}
-
-// Inicializa
-carregarAlunos();
 </script>
 
 </body>
