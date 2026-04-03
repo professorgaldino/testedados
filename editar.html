@@ -11,17 +11,48 @@ button { background: #4CAF50; color: white; border: none; cursor: pointer; }
 h2 { text-align: center; }
 label { font-weight: bold; }
 .debug { background: #eee; padding: 10px; margin-top: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+
+/* 🔥 POPUP FOTO */
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  justify-content: center;
+  align-items: center;
+}
+.popup img {
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.fechar {
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.fechar:hover { opacity: 1; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>✏️ Editar Alunos 6</h2>
+  <h2>✏️ Editar Alunos 7</h2>
 
   <input type="text" id="busca" placeholder="Digite RA ou Nome">
   <button onclick="buscar()">Buscar</button>
 
-  <div id="formulario" style="display:none;">
+  <div id="formulario">
     <label>RA</label>
     <input type="text" id="ra" disabled>
     <label>Nome</label>
@@ -29,7 +60,8 @@ label { font-weight: bold; }
     <label>Data de Nascimento</label>
     <input type="date" id="nascimento">
     <label>Foto (ID do Google Drive)</label>
-    <input type="text" id="foto">
+    <input type="text" id="foto" onclick="mostrarFoto()">
+    <button onclick="abrirPopupFoto()">🔍 Ver Foto</button>
     <label>Sala</label>
     <input type="text" id="sala">
     <label>Tutor</label>
@@ -38,41 +70,49 @@ label { font-weight: bold; }
     <input type="text" id="eletiva1">
     <label>Eletiva 2° Semestre</label>
     <input type="text" id="eletiva2">
-    <button onclick="salvar()">Salvar Alterações</button>
+    <button onclick="salvar()">💾 Salvar Alterações</button>
   </div>
 
-  <div class="debug" id="debug"></div>
+  <div class="debug" id="debug">⚠️ Nenhum aluno carregado ainda</div>
+</div>
+
+<!-- POPUP FOTO -->
+<div id="popup" class="popup" onclick="fecharPopup(event)">
+  <span class="fechar" onclick="fecharPopup(event)">×</span>
+  <img id="imgPopup">
 </div>
 
 <script>
-const url = "https://script.google.com/macros/s/AKfycbyWTU6i6cZSJ77HEI9tOxlpbt_g0Abbi6yDoWPePv_cJ-uq2cPonCdDvffMj6IcnxtxQQ/exec";
+const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
 let dados = [];
 let alunoAtual = null;
 
-// 🔥 carregar todos os dados
+// 🔥 carregar dados
 fetch(url)
   .then(res => res.json())
   .then(data => {
     dados = data;
-    document.getElementById('debug').innerText = "Dados carregados: " + JSON.stringify(dados, null, 2);
+    document.getElementById('debug').innerText = "✅ Dados carregados:\n" + JSON.stringify(dados, null, 2);
   });
 
-// 🔥 busca aluno pelo RA ou Nome
+// 🔥 buscar aluno por RA ou Nome
 function buscar() {
-  const valor = document.getElementById('busca').value.toLowerCase().trim();
-  alunoAtual = dados.find(a => String(a.ra).toLowerCase() === valor || (a.nome || "").toLowerCase() === valor);
+  const valor = document.getElementById('busca').value.toString().trim().toLowerCase();
+  alunoAtual = dados.find(a => {
+    const raStr = (a.ra || "").toString().trim().toLowerCase();
+    const nomeStr = (a.nome || "").toString().trim().toLowerCase();
+    return raStr === valor || nomeStr === valor;
+  });
 
-  const form = document.getElementById('formulario');
   const debug = document.getElementById('debug');
 
   if (!alunoAtual) {
-    form.style.display = "none";
     debug.innerText = "❌ Aluno não encontrado";
+    ['ra','nome','nascimento','foto','sala','tutor','eletiva1','eletiva2'].forEach(id => document.getElementById(id).value = '');
+    alunoAtual = null;
     return;
   }
-
-  form.style.display = "block";
 
   // preencher campos
   document.getElementById('ra').value = alunoAtual.ra;
@@ -84,7 +124,7 @@ function buscar() {
   document.getElementById('eletiva1').value = alunoAtual.eletiva1 || "";
   document.getElementById('eletiva2').value = alunoAtual.eletiva2 || "";
 
-  debug.innerText = "✅ Aluno carregado para edição";
+  debug.innerText = "✅ Aluno carregado para edição:\n" + JSON.stringify(alunoAtual, null, 2);
 }
 
 // 🔥 salvar alterações
@@ -108,13 +148,36 @@ function salvar() {
   })
   .then(res => res.text())
   .then(resp => {
-    document.getElementById('debug').innerText = "✅ Alteração enviada com sucesso!\n\n" +
-      "POST enviado:\n" + JSON.stringify(postData, null, 2) +
-      "\n\nResposta do servidor:\n" + resp;
+    document.getElementById('debug').innerText = "✅ Alteração enviada com sucesso!\n\nPOST enviado:\n" + JSON.stringify(postData, null, 2) + "\n\nResposta do servidor:\n" + resp;
   })
   .catch(err => {
     document.getElementById('debug').innerText = "❌ Erro ao salvar:\n" + err;
   });
+}
+
+// 🔥 POPUP FOTO
+function montarFoto(id) {
+  if (!id) return null;
+  id = String(id).trim();
+  if (id.length < 10) return null;
+  return "https://drive.google.com/uc?export=view&id=" + id;
+}
+
+function abrirPopupFoto() {
+  const fotoId = document.getElementById('foto').value;
+  const src = montarFoto(fotoId);
+  if (!src) return;
+  document.getElementById('imgPopup').src = src;
+  document.getElementById('popup').style.display = 'flex';
+}
+
+function fecharPopup(e) {
+  if (e.target.tagName === "IMG") return;
+  document.getElementById('popup').style.display = 'none';
+}
+
+function mostrarFoto() {
+  // opcional: pode mostrar preview pequeno aqui
 }
 </script>
 
