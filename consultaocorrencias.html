@@ -2,63 +2,45 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Consulta de Ocorrências 5</title>
+<title>Consulta de Ocorrências</title>
 <style>
-  body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-  .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
-  h1 { text-align: center; }
-  label { display: block; margin-top: 15px; font-weight: bold; }
-  select, input { width: 100%; padding: 8px; margin-top: 5px; }
-  button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  th { background: #eee; }
+body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+.container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
+label { display: block; margin-top: 10px; font-weight: bold; }
+select, input { width: 200px; padding: 5px; margin-top: 5px; }
+button { margin-top: 15px; padding: 10px 20px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+th { background-color: #eee; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Consulta de Ocorrências</h1>
-  
-  <label for="sala">Selecione a Sala:</label>
-  <select id="sala">
-    <option value="">Todas as salas</option>
-  </select>
+<h2>Consulta de Ocorrências 6</h2>
 
-  <label for="dataInicial">Data Inicial:</label>
-  <input type="date" id="dataInicial">
+<label for="sala">Sala:</label>
+<select id="sala">
+  <option value="">Todas</option>
+</select>
 
-  <label for="dataFinal">Data Final:</label>
-  <input type="date" id="dataFinal">
+<label for="dataInicial">Data Inicial:</label>
+<input type="date" id="dataInicial">
 
-  <button onclick="consultar()">Consultar</button>
+<label for="dataFinal">Data Final:</label>
+<input type="date" id="dataFinal">
 
-  <table id="tabelaResultados">
-    <thead>
-      <tr>
-        <th>Data Registro</th>
-        <th>Hora Registro</th>
-        <th>RA</th>
-        <th>Nome</th>
-        <th>Sala</th>
-        <th>Tutor</th>
-        <th>Professor</th>
-        <th>Descrição</th>
-        <th>Ação</th>
-        <th>Data do Fato</th>
-        <th>Hora do Fato</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<button onclick="consultar()">Consultar</button>
+
+<div id="resultado"></div>
 </div>
 
 <script>
-const urlAppScript = "https://script.google.com/macros/s/AKfycbyXDTEXpEABjwBGiffM_J1hlX6vE-2-apt_0dvveRaLgoUE8wIZ3WoVMa9o7lNEVx0H/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxw8nHg3ZQ8MzzphvR5cIdlB_1DQ6MVtRfnE3KZLSRvzwtJlsd18KapclXqaEdp7CKk/exec";
 
-// Carregar salas
+// Puxar salas únicas
 async function carregarSalas() {
   try {
-    const res = await fetch(urlAppScript, {
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify({ action: "salas" })
     });
@@ -70,54 +52,71 @@ async function carregarSalas() {
       option.textContent = s;
       select.appendChild(option);
     });
-  } catch (err) {
+  } catch(err) {
     console.error("Erro ao carregar salas:", err);
   }
 }
 
+// Converte yyyy-mm-dd -> dd/MM/yyyy
+function formatarDataInput(data) {
+  if (!data) return "";
+  const [y,m,d] = data.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 async function consultar() {
   const sala = document.getElementById("sala").value;
-  const dataInicial = document.getElementById("dataInicial").value;
-  const dataFinal = document.getElementById("dataFinal").value;
+  const dataInicial = formatarDataInput(document.getElementById("dataInicial").value);
+  const dataFinal = formatarDataInput(document.getElementById("dataFinal").value);
 
   try {
-    const res = await fetch(urlAppScript, {
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify({ action: "consultar", sala, dataInicial, dataFinal })
+      body: JSON.stringify({
+        action: "consultar",
+        sala,
+        dataInicial,
+        dataFinal
+      })
     });
-    const resultado = await res.json();
+    const dados = await res.json();
+    const div = document.getElementById("resultado");
+    div.innerHTML = "";
 
-    const tbody = document.querySelector("#tabelaResultados tbody");
-    tbody.innerHTML = "";
-
-    if (resultado.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='11'>Nenhuma ocorrência encontrada.</td></tr>";
+    if (!dados.length) {
+      div.textContent = "Nenhuma ocorrência encontrada.";
       return;
     }
 
-    resultado.forEach(o => {
+    // Criar tabela
+    const table = document.createElement("table");
+    const header = ["Data do Fato","Hora do Fato","RA","Nome","Sala","Tutor","Professor","Descrição","Ação Tomada"];
+    const thead = document.createElement("thead");
+    const trHead = document.createElement("tr");
+    header.forEach(h => { const th = document.createElement("th"); th.textContent = h; trHead.appendChild(th); });
+    thead.appendChild(trHead);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    dados.forEach(d => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${o["Data Registro"]}</td>
-        <td>${o["Hora Registro"]}</td>
-        <td>${o.ra}</td>
-        <td>${o.nome}</td>
-        <td>${o.Sala}</td>
-        <td>${o.Tutor}</td>
-        <td>${o.Professor}</td>
-        <td>${o["Descrição"]}</td>
-        <td>${o["Ação Tomada"]}</td>
-        <td>${o["Data do Fato"]}</td>
-        <td>${o["Hora do Fato"]}</td>
-      `;
+      header.forEach(h => {
+        const td = document.createElement("td");
+        td.textContent = d[h] || "";
+        tr.appendChild(td);
+      });
       tbody.appendChild(tr);
     });
-  } catch (err) {
+    table.appendChild(tbody);
+    div.appendChild(table);
+
+  } catch(err) {
     console.error("Erro ao consultar ocorrências:", err);
+    document.getElementById("resultado").textContent = "Erro ao consultar ocorrências.";
   }
 }
 
-// Carregar salas ao iniciar
+// Inicializa
 carregarSalas();
 </script>
 </body>
