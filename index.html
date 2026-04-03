@@ -22,6 +22,10 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
+    h2 {
+      text-align: center;
+    }
+
     input, button {
       width: 100%;
       padding: 10px;
@@ -50,7 +54,7 @@
 <body>
 
 <div class="container">
-  <h2>Cadastro de Alunos</h2>
+  <h2>Cadastro de Alunos 2</h2>
 
   <form id="form">
     <input type="text" id="nome" placeholder="Nome" required>
@@ -67,23 +71,26 @@ document.getElementById("form").addEventListener("submit", function(e) {
 
   const msg = document.getElementById("msg");
 
-  const data = {
-    nome: document.getElementById("nome").value,
-    idade: document.getElementById("idade").value
-  };
+  const nome = document.getElementById("nome").value;
+  const idade = document.getElementById("idade").value;
 
-  fetch("https://script.google.com/macros/s/AKfycbzP3B0Tg8B63eqjusc5jstzrO1Tp6pnXUK-J59quzT2n-kB315rbEP85T3QASjPKO68Ow/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbwhO6p9WurXqaJ7JyKd4sXbToIRDIGP-i9_n-dS7fEl2NFWydP9mSIUmKXoy_XibNx1Yw/exec", {
     method: "POST",
-    body: JSON.stringify(data)
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nome: nome,
+      idade: idade
+    })
   })
-  .then(res => res.json())
-  .then(res => {
+  .then(() => {
     msg.innerHTML = "✅ Enviado com sucesso!";
     document.getElementById("form").reset();
   })
-  .catch(err => {
+  .catch(() => {
     msg.innerHTML = "❌ Erro ao enviar!";
-    console.error(err);
   });
 });
 </script>
