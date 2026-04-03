@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Consulta de Ocorrências</title>
+<title>Consulta de Ocorrências - Debug</title>
 <style>
 body { font-family: Arial; padding: 20px; background: #f4f4f4; }
 .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
@@ -12,11 +12,12 @@ button { margin-top: 15px; padding: 10px 20px; }
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
 th { background-color: #eee; }
+pre { background: #eee; padding: 10px; overflow: auto; }
 </style>
 </head>
 <body>
 <div class="container">
-<h2>Consulta de Ocorrências 6</h2>
+<h2>Consulta de Ocorrências - Debug</h2>
 
 <label for="sala">Sala:</label>
 <select id="sala">
@@ -30,6 +31,9 @@ th { background-color: #eee; }
 <input type="date" id="dataFinal">
 
 <button onclick="consultar()">Consultar</button>
+
+<h3>Resultado bruto (debug)</h3>
+<pre id="debug"></pre>
 
 <div id="resultado"></div>
 </div>
@@ -52,8 +56,10 @@ async function carregarSalas() {
       option.textContent = s;
       select.appendChild(option);
     });
+    document.getElementById("debug").textContent = "Salas carregadas: " + JSON.stringify(salas, null, 2);
   } catch(err) {
     console.error("Erro ao carregar salas:", err);
+    document.getElementById("debug").textContent = "Erro ao carregar salas: " + err;
   }
 }
 
@@ -82,6 +88,9 @@ async function consultar() {
     const dados = await res.json();
     const div = document.getElementById("resultado");
     div.innerHTML = "";
+    
+    // Debug: mostrar dados brutos
+    document.getElementById("debug").textContent = JSON.stringify(dados, null, 2);
 
     if (!dados.length) {
       div.textContent = "Nenhuma ocorrência encontrada.";
@@ -113,6 +122,7 @@ async function consultar() {
   } catch(err) {
     console.error("Erro ao consultar ocorrências:", err);
     document.getElementById("resultado").textContent = "Erro ao consultar ocorrências.";
+    document.getElementById("debug").textContent = err;
   }
 }
 
