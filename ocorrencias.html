@@ -15,7 +15,7 @@
 </head>
 <body>
 <div class="container">
-  <h2>Registro de Ocorrências 2</h2>
+  <h2>Registro de Ocorrências 3</h2>
   
   <label>Selecione a Sala:</label>
   <select id="salaSelect">
@@ -32,7 +32,10 @@
   
   <label>RA do Aluno:</label>
   <input type="text" id="ra" readonly>
-  
+
+  <label>Data e Hora do Fato:</label>
+  <input type="datetime-local" id="dataHoraFato">
+
   <label>Nome do Professor:</label>
   <input type="text" id="professor">
   
@@ -46,8 +49,9 @@
 </div>
 
 <script>
-  // URLs
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxgsks-F3_Jqp6TZmBBkiPMQrewUXmTa3fSe6OdAs-6Fntd3AnKGGbIAAWOqziVNwpX/exec";
+  // URL do WebApp atualizado
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwURvs1Gl2efuA72dB174XOjSQy25h3ji7qFDFtHLu-5gpArf1pW2G84e90CDulwkKX/exec";
+  // URL para buscar alunos externos
   const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
   let alunosExternos = [];
@@ -56,7 +60,7 @@
   const salaSelect = document.getElementById("salaSelect");
   const alunoSelect = document.getElementById("alunoSelect");
 
-  // Buscar alunos externos e popular salas e dropdown
+  // Buscar alunos externos
   fetch(ALUNOS_URL)
     .then(res => res.json())
     .then(data => {
@@ -74,7 +78,7 @@
     })
     .catch(err => alert("Erro ao carregar alunos: " + err));
 
-  // Quando a sala mudar, filtrar alunos
+  // Filtrar alunos por sala
   salaSelect.addEventListener("change", function(){
     const selectedSala = this.value;
     alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
@@ -94,7 +98,7 @@
     document.getElementById("ra").value = "";
   });
 
-  // Atualizar tutor e RA ao selecionar aluno
+  // Atualizar tutor e RA
   alunoSelect.addEventListener("change", function(){
     const selected = this.options[this.selectedIndex];
     document.getElementById("tutor").value = selected.getAttribute("data-tutor") || "";
@@ -108,15 +112,16 @@
     const professor = document.getElementById("professor").value;
     const descricao = document.getElementById("descricao").value;
     const acao = document.getElementById("acao").value;
+    const dataHoraFato = document.getElementById("dataHoraFato").value;
 
-    if(!ra || !professor || !descricao) {
-      alert("Preencha RA, Professor e Descrição obrigatoriamente!");
+    if(!ra || !professor || !descricao || !dataHoraFato) {
+      alert("Preencha RA, Professor, Descrição e Data/Hora do Fato!");
       return;
     }
 
     fetch(WEBAPP_URL, {
       method: "POST",
-      body: JSON.stringify({ra, nome, professor, descricao, acao})
+      body: JSON.stringify({ra, nome, professor, descricao, acao, dataHoraFato})
     })
     .then(res => res.json())
     .then(data => {
@@ -131,6 +136,7 @@
       document.getElementById("professor").value = "";
       document.getElementById("descricao").value = "";
       document.getElementById("acao").value = "";
+      document.getElementById("dataHoraFato").value = "";
     })
     .catch(err => alert("Erro ao enviar ocorrência: " + err));
   }
