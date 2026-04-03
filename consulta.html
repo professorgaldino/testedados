@@ -60,7 +60,7 @@
 <body>
 
 <div class="container">
-  <h2>📋 Lista de alunos 8</h2>
+  <h2>📋 Lista de alunos 9</h2>
 
   <button onclick="carregar()">Carregar Alunos</button>
 
@@ -71,11 +71,23 @@
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
+// 🔥 Função robusta para montar a foto
 function montarFoto(id) {
   if (!id) return "https://via.placeholder.com/70";
-  return "https://drive.google.com/uc?export=view&id=" + id;
+
+  try {
+    id = id.toString().trim(); // remove espaços
+
+    // Debug
+    console.log("ID recebido:", id);
+
+    return "https://drive.google.com/uc?export=view&id=" + id;
+  } catch (e) {
+    return "https://via.placeholder.com/70";
+  }
 }
 
+// 🔥 Formatar data
 function formatarData(data) {
   if (!data) return "";
   const d = new Date(data);
@@ -98,6 +110,8 @@ function carregar() {
 
       if (!Array.isArray(data)) throw new Error("Resposta inválida");
 
+      console.log("Dados recebidos:", data); // 🔍 debug geral
+
       if (data.length === 0) {
         msg.innerHTML = "❌ Nenhum aluno encontrado";
         return;
@@ -108,7 +122,7 @@ function carregar() {
       data.forEach(a => {
         resultado.innerHTML += `
           <div class="aluno">
-            <img src="${montarFoto(a.foto)}">
+            <img src="${montarFoto(a.foto)}" onerror="this.src='https://via.placeholder.com/70'">
             <div class="info">
               <strong>${a.nome}</strong><br>
               RA: ${a.ra}<br>
@@ -124,7 +138,7 @@ function carregar() {
     })
     .catch(err => {
       msg.innerHTML = "❌ Falha ao carregar dados";
-      console.error(err);
+      console.error("Erro:", err);
     });
 }
 </script>
