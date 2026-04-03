@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Edição de Alunos</title>
+
+<style>
+body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+.container { max-width: 800px; margin: auto; }
+input, select { width: 100%; padding: 10px; margin-bottom: 10px; }
+button { padding: 10px 15px; cursor: pointer; }
+label { font-weight: bold; display: block; margin-bottom: 5px; }
+.foto { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; cursor: pointer; }
+.sem-foto { width: 80px; height: 80px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; color: red; font-weight: bold; }
+.msg { font-weight: bold; margin-bottom: 10px; }
+.popup { display: none; position: fixed; z-index: 999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
+.popup img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; }
+.fechar { position: absolute; top: 15px; right: 25px; color: white; font-size: 28px; font-weight: bold; cursor: pointer; opacity: 0.7; }
+.fechar:hover { opacity: 1; }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h2>✏️ Edição de Alunos</h2>
+
+  <!-- Pesquisa -->
+  <label for="busca">Pesquisar RA ou Nome</label>
+  <input type="text" id="busca" placeholder="Digite RA ou Nome">
+  <button onclick="buscar()">Buscar</button>
+
+  <div class="msg" id="msg"></div>
+
+  <!-- Formulário -->
+  <form id="formAluno" style="display:none;" onsubmit="salvar(event)">
+    <label>RA</label>
+    <input type="text" id="ra" readonly>
+
+    <label>Nome</label>
+    <input type="text" id="nome">
+
+    <label>Data</label>
+    <input type="text" id="data">
+
+    <label>Nascimento</label>
+    <input type="date" id="nascimento">
+
+    <label>Foto (ID do Drive)</label>
+    <input type="text" id="foto">
+
+    <label>Sala</label>
+    <input type="text" id="sala">
+
+    <label>Tutor</label>
+    <input type="text" id="tutor">
+
+    <label>Eletiva 1º Semestre</label>
+    <input type="text" id="eletiva1">
+
+    <label>Eletiva 2º Semestre</label>
+    <input type="text" id="eletiva2">
+
+    <div style="margin-bottom:10px;">
+      <img id="fotoPreview" class="foto">
+      <div id="semFoto" class="sem-foto" style="display:none;">❌</div>
+    </div>
+
+    <button type="submit">Salvar alterações</button>
+  </form>
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup" onclick="fecharPopup(event)">
+  <span class="fechar" onclick="fecharPopup(event)">×</span>
+  <img id="imgPopup">
+</div>
+
+<script>
+const url = "https://script.google.com/macros/s/AKfycbzIA0l9kM_85cgdjH5dakrk85Ybvc-5sSjj68aDeOIpy4VuQPKuJwps0KV5Q8hcMKCFjQ/exec";
+let dados = [];
+let alunoAtual = null;
+
+// montar foto
+function montarFoto(id) {
+  if (!id) return null;
+  id = String(id).trim();
+  if (id.length < 10) return null;
+  return "https://lh3.googleusercontent.com/d/" + id;
+}
+
+// carregar dados ao iniciar
+function carregar() {
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      dados = data;
+    });
+}
+
+// buscar aluno
+function buscar() {
+  const valor = document.getElementById("busca").value.toLowerCase().trim();
+  const msg = document.getElementById("msg");
+  alunoAtual = dados.find(a => String(a.ra).toLowerCase() === valor || (a.nome || "").toLowerCase() === valor);
+
+  const form = document.getElementById("formAluno");
+  const fotoPreview = document.getElementById("fotoPreview");
+  const semFoto = document.getElementById("semFoto");
+
+  if (!alunoAtual) {
+    msg.innerText = "❌ Aluno não encontrado";
+    form.style.display = "none";
+    return;
+  }
+
+  msg.innerText = "✅ Aluno encontrado";
+  form.style.display = "block";
+
+  // preencher campos
+  document.getElementById("ra").value = alunoAtual.ra;
+  document.getElementById("nome").value = alunoAtual.nome || "";
+  document.getElementById("data").value = alunoAtual.data || "";
+  document.getElementById("nascimento").value = alunoAtual.nascimento ? alunoAtual.nascimento.split("T")[0] : "";
+  document.getElementById("foto").value = alunoAtual.foto || "";
+  document.getElementById("sala").value = alunoAtual.sala || "";
+  document.getElementById("tutor").value = alunoAtual.tutor || "";
+  document.getElementById("eletiva1").value = alunoAtual.eletiva1 || "";
+  document.getElementById("eletiva2").value = alunoAtual.eletiva2 || "";
+
+  // foto preview
+  const fotoUrl = montarFoto(alunoAtual.foto);
+  if (fotoUrl) {
+    fotoPreview.src = fotoUrl;
+    fotoPreview.style.display = "block";
+    semFoto.style.display = "none";
+    fotoPreview.onclick = () => abrirPopup(fotoUrl);
+  } else {
+    fotoPreview.style.display = "none";
+    semFoto.style.display = "flex";
+  }
+}
+
+// salvar alterações
+function salvar(e) {
+  e.preventDefault();
+  if (!alunoAtual) return;
+
+  const payload = {
+    ra: alunoAtual.ra, // identificador
+    nome: document.getElementById("nome").value,
+    data: document.getElementById("data").value,
+    nascimento: document.getElementById("nascimento").value,
+    foto: document.getElementById("foto").value,
+    sala: document.getElementById("sala").value,
+    tutor: document.getElementById("tutor").value,
+    eletiva1: document.getElementById("eletiva1").value,
+    eletiva2: document.getElementById("eletiva2").value
+  };
+
+  fetch(url, {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" }
+  })
+  .then(r => r.json())
+  .then(res => {
+    document.getElementById("msg").innerText = "✅ Alterações salvas com sucesso!";
+    carregar(); // recarrega dados
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("msg").innerText = "❌ Falha ao salvar alterações";
+  });
+}
+
+// popup
+function abrirPopup(src) {
+  document.getElementById("popup").style.display = "flex";
+  document.getElementById("imgPopup").src = src;
+}
+function fecharPopup(e) {
+  if (e.target.tagName === "IMG") return;
+  document.getElementById("popup").style.display = "none";
+}
+
+// iniciar
+carregar();
+</script>
+</body>
+</html>
