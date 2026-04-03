@@ -5,110 +5,27 @@
 <title>Consulta de Alunos</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #f4f4f4;
-  padding: 20px;
-}
-
-.container {
-  max-width: 1000px;
-  margin: auto;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.aluno {
-  background: white;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.foto {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-}
-
-.sem-foto {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: red;
-  font-weight: bold;
-}
-
-.paginacao {
-  text-align: center;
-  margin-top: 15px;
-}
-
-button {
-  padding: 8px 12px;
-  margin: 5px;
-  cursor: pointer;
-}
-
-/* 🔥 POPUP PROFISSIONAL */
-.popup {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.95);
-  justify-content: center;
-  align-items: center;
-}
-
-.popup img {
-  max-width: 95vw;
-  max-height: 95vh;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-/* ❌ botão discreto */
-.fechar {
-  position: absolute;
-  top: 15px;
-  right: 25px;
-  color: white;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.fechar:hover {
-  opacity: 1;
-}
+body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+.container { max-width: 1000px; margin: auto; }
+input { width: 80%; padding: 10px; margin-bottom: 10px; }
+button { padding: 10px 15px; margin-left: 5px; cursor: pointer; }
+.aluno { background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; gap: 10px; align-items: center; }
+.foto { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; cursor: pointer; }
+.sem-foto { width: 60px; height: 60px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; color: red; font-weight: bold; }
+.paginacao { text-align: center; margin-top: 15px; }
+/* POPUP */
+.popup { display: none; position: fixed; z-index: 999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
+.popup img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; }
+.fechar { position: absolute; top: 15px; right: 25px; color: white; font-size: 28px; font-weight: bold; cursor: pointer; opacity: 0.7; }
+.fechar:hover { opacity: 1; }
 </style>
 </head>
 
 <body>
-
 <div class="container">
-  <h2>🔍 Consulta de Alunos 17</h2>
-
-  <input type="text" id="busca" placeholder="Pesquisar por RA, Nome ou Sala">
+  <h2>🔍 Consulta de Alunos 18</h2>
+  <input type="text" id="busca" placeholder="Pesquisar qualquer campo">
+  <button onclick="buscar()">Buscar</button>
 
   <div id="resultado"></div>
 
@@ -119,7 +36,7 @@ button {
   </div>
 </div>
 
-<!-- 🔥 POPUP -->
+<!-- POPUP -->
 <div id="popup" class="popup" onclick="fecharPopup(event)">
   <span class="fechar" onclick="fecharPopup(event)">×</span>
   <img id="imgPopup">
@@ -133,18 +50,15 @@ let filtrados = [];
 let paginaAtual = 1;
 const porPagina = 5;
 
-// 🔥 montar foto (Google Drive)
+// montar foto usando lh3.googleusercontent.com
 function montarFoto(id) {
   if (!id) return null;
-
   id = String(id).trim();
-
   if (id.length < 10) return null;
-
   return "https://lh3.googleusercontent.com/d/" + id;
 }
 
-// 🔥 carregar dados
+// carregar dados
 function carregar() {
   fetch(url)
     .then(r => r.json())
@@ -155,23 +69,24 @@ function carregar() {
     });
 }
 
-// 🔥 busca corrigida
-document.getElementById("busca").addEventListener("input", () => {
+// função Buscar acionada pelo botão
+function buscar() {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
-
-  filtrados = dados.filter(a => {
-    const ra = String(a.ra || "").toLowerCase();
-    const nome = (a.nome || "").toLowerCase();
-    const sala = (a.sala || "").toLowerCase();
-
-    return ra.includes(valor) || nome.includes(valor) || sala.includes(valor);
-  });
-
+  if (!valor) {
+    filtrados = dados;
+  } else {
+    filtrados = dados.filter(a => {
+      // verificar todos os campos
+      return Object.keys(a).some(k => {
+        return String(a[k] || "").toLowerCase().includes(valor);
+      });
+    });
+  }
   paginaAtual = 1;
   renderizar();
-});
+}
 
-// 🔥 render
+// render
 function renderizar() {
   const inicio = (paginaAtual - 1) * porPagina;
   const paginaDados = filtrados.slice(inicio, inicio + porPagina);
@@ -186,14 +101,9 @@ function renderizar() {
 
   paginaDados.forEach(a => {
     const foto = montarFoto(a.foto);
-
-    let fotoHTML = "";
-
-    if (foto) {
-      fotoHTML = `<img class="foto" src="${foto}" onclick="abrirPopup('${foto}')">`;
-    } else {
-      fotoHTML = `<div class="sem-foto">❌</div>`;
-    }
+    const fotoHTML = foto
+      ? `<img class="foto" src="${foto}" onclick="abrirPopup('${foto}')">`
+      : `<div class="sem-foto">❌</div>`;
 
     div.innerHTML += `
       <div class="aluno">
@@ -201,8 +111,12 @@ function renderizar() {
         <div>
           <strong>${a.nome}</strong><br>
           RA: ${a.ra}<br>
+          Data: ${a.data || '-'}<br>
+          Nascimento: ${a.nascimento || '-'}<br>
           Sala: ${a.sala}<br>
-          Tutor: ${a.tutor}
+          Tutor: ${a.tutor}<br>
+          Eletiva1: ${a.eletiva1 || '-'}<br>
+          Eletiva2: ${a.eletiva2 || '-'}
         </div>
       </div>
     `;
@@ -212,7 +126,7 @@ function renderizar() {
     "Página " + paginaAtual + " de " + Math.ceil(filtrados.length / porPagina);
 }
 
-// 🔥 paginação
+// paginação
 function proximo() {
   if (paginaAtual < Math.ceil(filtrados.length / porPagina)) {
     paginaAtual++;
@@ -227,22 +141,19 @@ function anterior() {
   }
 }
 
-// 🔥 popup
+// popup
 function abrirPopup(src) {
   document.getElementById("popup").style.display = "flex";
   document.getElementById("imgPopup").src = src;
 }
 
 function fecharPopup(e) {
-  // não fecha se clicar na imagem
   if (e.target.tagName === "IMG") return;
-
   document.getElementById("popup").style.display = "none";
 }
 
 // iniciar
 carregar();
 </script>
-
 </body>
 </html>
