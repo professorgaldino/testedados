@@ -26,6 +26,7 @@
       object-fit: cover;
       display: block;
       margin-bottom: 10px;
+      background: #ddd;
     }
 
     .debug {
@@ -40,7 +41,7 @@
 
 <body>
 
-<h2>🔍 DEBUG - Dados dos Alunos 10</h2>
+<h2>🔍 DEBUG - Dados dos Alunos 11</h2>
 
 <button onclick="carregar()">Carregar Dados</button>
 
@@ -49,12 +50,14 @@
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
+// 🔥 NOVA FUNÇÃO (funciona no GitHub Pages)
 function montarFoto(id) {
   if (!id) return "https://via.placeholder.com/70";
 
   id = String(id).trim();
 
-  return "https://drive.google.com/uc?export=view&id=" + id;
+  // 🔥 formato que realmente funciona
+  return "https://lh3.googleusercontent.com/d/" + id;
 }
 
 function carregar() {
@@ -69,13 +72,16 @@ function carregar() {
 
       data.forEach((a, i) => {
 
-        console.log("ALUNO:", a); // 🔥 console
+        const urlFoto = montarFoto(a.foto);
+
+        console.log("ALUNO:", a);
+        console.log("URL FOTO:", urlFoto);
 
         div.innerHTML += `
           <div class="aluno">
 
-            <img src="${montarFoto(a.foto)}"
-                 onerror="this.src='https://via.placeholder.com/70'">
+            <img src="${urlFoto}"
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/70'">
 
             <strong>${a.nome}</strong><br>
 
@@ -88,7 +94,9 @@ function carregar() {
 
             <div class="debug">
 FOTO (valor bruto): ${a.foto}
-URL gerada: ${montarFoto(a.foto)}
+
+URL gerada (nova):
+${urlFoto}
 
 OBJETO COMPLETO:
 ${JSON.stringify(a, null, 2)}
