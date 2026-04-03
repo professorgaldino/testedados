@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta de Ocorrências</title>
+  <title>Consulta de Ocorrências 17</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
     h1 { text-align: center; }
@@ -16,7 +16,7 @@
 </head>
 <body>
 
-<h1>Consulta de Ocorrências 16</h1>
+<h1>Consulta de Ocorrências</h1>
 <div class="loading" id="loading">Carregando ocorrências...</div>
 <div class="error" id="error"></div>
 
@@ -46,7 +46,25 @@
   const errorDiv = document.getElementById("error");
   const loadingDiv = document.getElementById("loading");
 
-  // Função de callback chamada pelo JSONP
+  // Formata a data ISO para dd/mm/yyyy
+  function formatarData(isoString) {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const ano = d.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  // Formata a hora ISO para HH:mm
+  function formatarHora(isoString) {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const horas = String(d.getHours()).padStart(2, "0");
+    const minutos = String(d.getMinutes()).padStart(2, "0");
+    return `${horas}:${minutos}`;
+  }
+
   function mostrarOcorrencias(dados) {
     loadingDiv.style.display = "none";
 
@@ -58,8 +76,8 @@
     dados.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${o["Data Registro"] || ""}</td>
-        <td>${o["Hora Registro"] || ""}</td>
+        <td>${formatarData(o["Data Registro"])}</td>
+        <td>${formatarHora(o["Hora Registro"])}</td>
         <td>${o.ra || ""}</td>
         <td>${o.nome || ""}</td>
         <td>${o.Sala || ""}</td>
@@ -67,8 +85,8 @@
         <td>${o.Professor || ""}</td>
         <td>${o["Descrição"] || ""}</td>
         <td>${o["Ação Tomada"] || ""}</td>
-        <td>${o["Data do Fato"] || ""}</td>
-        <td>${o["Hora do Fato"] || ""}</td>
+        <td>${formatarData(o["Data do Fato"])}</td>
+        <td>${formatarHora(o["Hora do Fato"])}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -76,7 +94,6 @@
     tabela.style.display = "table";
   }
 
-  // Carrega dados via JSONP
   function carregarOcorrencias() {
     const script = document.createElement("script");
     script.src = urlWebApp + "?action=consultar&callback=mostrarOcorrencias";
@@ -87,7 +104,6 @@
     document.body.appendChild(script);
   }
 
-  // Executa ao carregar a página
   carregarOcorrencias();
 </script>
 
