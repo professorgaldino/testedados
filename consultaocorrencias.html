@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Consulta de Ocorrências</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+  .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+  h2 { text-align: center; }
+  label { display: block; margin-top: 10px; }
+  select, input { padding: 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; }
+  button { margin-top: 20px; padding: 10px 20px; background: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #0056b3; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+  th { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Consulta de Ocorrências</h2>
+
+  <label>Selecione a Sala:</label>
+  <select id="salaSelect">
+    <option value="">Todas as salas</option>
+  </select>
+
+  <label>Data Inicial:</label>
+  <input type="date" id="dataInicial">
+
+  <label>Data Final:</label>
+  <input type="date" id="dataFinal">
+
+  <button onclick="consultar()">Consultar</button>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzeExwAUYhwDTDMo2D1qVODAk3cDjOlPy4NGrs_XIN8hOcob7kEOpXYZwPRYVM9v0Wz/exec";
+  const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqWZ-5m577AB1ictRYVg/exec";
+
+  let alunosExternos = [];
+  const salaSelect = document.getElementById("salaSelect");
+
+  // Buscar salas a partir dos alunos
+  fetch(ALUNOS_URL)
+    .then(res => res.json())
+    .then(data => {
+      alunosExternos = data;
+      const salasSet = new Set(alunosExternos.map(a => a.sala).filter(Boolean));
+      Array.from(salasSet).sort().forEach(sala => {
+        const opt = document.createElement("option");
+        opt.value = sala;
+        opt.textContent = sala;
+        salaSelect.appendChild(opt);
+      });
+    })
+    .catch(err => alert("Erro ao carregar salas: " + err));
+
+  // Formatar data dd/mm/yyyy para comparar
+  function formatarDataParaComparacao(dateStr) {
+    const parts = dateStr.split("/");
+    return new Date(parts[2], parts[1]-1, parts[0]); // ano, mês-1, dia
+  }
+
+  // Consultar ocorrências
+  function consultar() {
+    const sala = salaSelect.value;
+    const dataInicial = document.getElementById("dataInicial").value;
+    const dataFinal = document.getElementById("dataFinal").value;
+
+    fetch(WEBAPP_URL + "?action=consulta") // Vamos adicionar parâmetro action=consulta
+      .then(res => res.json())
+      .then(data => {
+        let ocorrencias = data; // array de objetos da planilha
+
+        // Filtrar por sala se selecionada
+        if(sala) {
+          ocorrencias = ocorrencias.filter(o => o.sala === sala);
+        }
+
+        // Filtrar por período se selecionado
+        if(dataInicial) {
+          const dtIni = new Date(dataInicial);
+          ocorrencias = ocorrencias.filter(o => {
+            const oData = o.dataFato.split("/"); // dd/mm/yyyy
+            const oDt = new Date(oData[2], oData[1]-1, oData[0]);
+            return oDt >= dtIni;
+          });
+        }
+        if(dataFinal) {
+          const dtFim = new Date(dataFinal);
+          ocorrencias = ocorrencias.filter(o => {
+            const oData = o.dataFato.split("/");
+            const oDt = new Date(oData[2], oData[1]-1, oData[0]);
+            return oDt <= dtFim;
+          });
+        }
+
+        // Montar tabela
+        let html = "<table><tr><th>Data Registro</th><th>Hora Registro</th><th>RA</th><th>Nome</th><th>Sala</th><th>Tutor</th><th>Professor</th><th>Descrição</th><th>Ação</th><th>Data do Fato</th><th>Hora do Fato</th></tr>";
+        ocorrencias.forEach(o => {
+          html += `<tr>
+            <td>${o.dataRegistro}</td>
+            <td>${o.horaRegistro}</td>
+            <td>${o.ra}</td>
+            <td>${o.nome}</td>
+            <td>${o.sala}</td>
+            <td>${o.tutor}</td>
+            <td>${o.professor}</td>
+            <td>${o.descricao}</td>
+            <td>${o.acao}</td>
+            <td>${o.dataFato}</td>
+            <td>${o.horaFato}</td>
+          </tr>`;
+        });
+        html += "</table>";
+        document.getElementById("resultado").innerHTML = html;
+      })
+      .catch(err => alert("Erro ao consultar ocorrências: " + err));
+  }
+</script>
+</body>
+</html>
