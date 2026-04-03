@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de Alunos</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    .aluno {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .info {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>🔍 Buscar Aluno</h2>
+
+  <input type="text" id="busca" placeholder="Digite o nome ou RA...">
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
+
+let alunos = [];
+
+// Carrega os dados da planilha
+fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    alunos = data;
+  })
+  .catch(err => {
+    console.error("Erro ao carregar dados:", err);
+  });
+
+// Busca em tempo real
+document.getElementById("busca").addEventListener("input", function() {
+  const valor = this.value.toLowerCase();
+  const resultado = document.getElementById("resultado");
+
+  resultado.innerHTML = "";
+
+  const filtrados = alunos.filter(a =>
+    a.nome.toLowerCase().includes(valor) ||
+    a.ra.toString().includes(valor)
+  );
+
+  if (filtrados.length === 0) {
+    resultado.innerHTML = "<p>Nenhum aluno encontrado</p>";
+    return;
+  }
+
+  filtrados.forEach(a => {
+    resultado.innerHTML += `
+      <div class="aluno">
+        <img src="${a.foto || 'https://via.placeholder.com/60'}">
+        <div class="info">
+          <strong>${a.nome}</strong><br>
+          RA: ${a.ra}<br>
+          Sala: ${a.sala}<br>
+          Tutor: ${a.tutor}
+        </div>
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>
