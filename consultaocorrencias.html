@@ -1,150 +1,117 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Consulta de Ocorrências</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    label { display: block; margin-top: 10px; }
-    select, input { padding: 5px; margin-top: 5px; }
-    button { margin-top: 15px; padding: 10px 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f0f0f0; }
-    .message { margin-top: 20px; font-weight: bold; color: red; }
-  </style>
+<meta charset="UTF-8">
+<title>Consulta de Ocorrências</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+label { display: block; margin-top: 10px; }
+select, input { margin-top: 5px; padding: 5px; width: 200px; }
+button { margin-top: 15px; padding: 10px 15px; }
+table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+th, td { border: 1px solid #333; padding: 5px; text-align: left; }
+#debug { margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; }
+</style>
 </head>
 <body>
 
-<h2>Consulta de Ocorrências</h2>
+<h2>Consulta de Ocorrências 9</h2>
 
-<label for="sala">Sala:</label>
-<select id="sala">
-  <option value="">Todas</option>
-</select>
+<label for="sala">Selecione a Sala:</label>
+<select id="sala"><option value="">Carregando...</option></select>
 
-<label for="dataInicial">Data Inicial (dd/mm/yyyy):</label>
+<label for="dataInicial">Data Inicial:</label>
 <input type="date" id="dataInicial">
 
-<label for="dataFinal">Data Final (dd/mm/yyyy):</label>
+<label for="dataFinal">Data Final:</label>
 <input type="date" id="dataFinal">
 
 <button id="consultar">Consultar</button>
 
-<div class="message" id="mensagem"></div>
+<h3>Resultados:</h3>
+<div id="resultado"></div>
 
-<table id="tabela" style="display:none">
-  <thead>
-    <tr>
-      <th>Data do Fato</th>
-      <th>Hora do Fato</th>
-      <th>RA</th>
-      <th>Nome</th>
-      <th>Sala</th>
-      <th>Tutor</th>
-      <th>Professor</th>
-      <th>Descrição</th>
-      <th>Ação Tomada</th>
-      <th>Data Registro</th>
-      <th>Hora Registro</th>
-    </tr>
-  </thead>
-  <tbody id="corpoTabela"></tbody>
-</table>
+<h3>Debug JSON:</h3>
+<div id="debug"></div>
 
 <script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzZsHbmPXZuEL0OIae73Fz-ODqHb8HmPQgzxpHSny8-WmFx-hJc7imyAzFzeUl2zIiX/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyRzOZeSZ0AHi_os7tuNlOEdI4FOVya-lakiMA_0G5bffe05B5OvCOw7ZZx0EPDPzKk/exec";
 
-// Função para converter data ISO para dd/mm/yyyy
-function formatarDataIsoParaPT(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const dia = String(d.getDate()).padStart(2, '0');
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
-  const ano = d.getFullYear();
-  return `${dia}/${mes}/${ano}`;
-}
-
-// Carregar salas únicas
+// Função para carregar salas
 async function carregarSalas() {
-  try {
-    const resp = await fetch(WEBAPP_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({action: "salas"})
-    });
-    const salas = await resp.json();
-    console.log("Salas recebidas:", salas); // debug
-    const select = document.getElementById('sala');
-    salas.forEach(s => {
-      const option = document.createElement('option');
-      option.value = s;
-      option.textContent = s;
-      select.appendChild(option);
-    });
-  } catch (e) {
-    console.error("Erro ao carregar salas:", e);
-    document.getElementById('mensagem').textContent = "Erro ao carregar salas";
-  }
-}
-
-// Consultar ocorrências
-async function consultar() {
-  const sala = document.getElementById('sala').value;
-  const dataInicial = document.getElementById('dataInicial').value;
-  const dataFinal = document.getElementById('dataFinal').value;
-
-  try {
-    const resp = await fetch(WEBAPP_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        action: "consultar",
-        sala: sala,
-        dataInicial: dataInicial,
-        dataFinal: dataFinal
-      })
-    });
-    const resultados = await resp.json();
-    console.log("Resultados recebidos:", resultados); // debug
-
-    const corpo = document.getElementById('corpoTabela');
-    corpo.innerHTML = "";
-    const tabela = document.getElementById('tabela');
-
-    if (!resultados || resultados.length === 0) {
-      tabela.style.display = "none";
-      document.getElementById('mensagem').textContent = "Nenhuma ocorrência encontrada";
-      return;
+    const select = document.getElementById("sala");
+    select.innerHTML = "<option value=''>Carregando...</option>";
+    try {
+        const response = await fetch(WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "salas" }),
+            headers: { "Content-Type": "application/json" }
+        });
+        const salas = await response.json();
+        select.innerHTML = "<option value=''>Todas</option>";
+        salas.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s;
+            opt.textContent = s;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        select.innerHTML = "<option value=''>Erro ao carregar salas</option>";
+        document.getElementById("debug").textContent = "Erro ao carregar salas: " + err;
     }
-
-    document.getElementById('mensagem').textContent = "";
-    tabela.style.display = "table";
-
-    resultados.forEach(o => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${o["Data do Fato"]}</td>
-        <td>${o["Hora do Fato"]}</td>
-        <td>${o.ra}</td>
-        <td>${o.nome}</td>
-        <td>${o.Sala}</td>
-        <td>${o.Tutor}</td>
-        <td>${o.Professor}</td>
-        <td>${o["Descrição"]}</td>
-        <td>${o["Ação Tomada"]}</td>
-        <td>${o["Data Registro"]}</td>
-        <td>${o["Hora Registro"]}</td>
-      `;
-      corpo.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("Erro ao consultar ocorrências:", e);
-    document.getElementById('mensagem').textContent = "Erro ao consultar ocorrências";
-  }
 }
 
-document.getElementById('consultar').addEventListener('click', consultar);
+// Função para consultar ocorrências
+async function consultarOcorrencias() {
+    const sala = document.getElementById("sala").value;
+    const dataInicial = document.getElementById("dataInicial").value;
+    const dataFinal = document.getElementById("dataFinal").value;
+
+    document.getElementById("resultado").innerHTML = "Consultando...";
+    document.getElementById("debug").textContent = "";
+
+    try {
+        const response = await fetch(WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "consultar",
+                sala: sala,
+                dataInicial: dataInicial,
+                dataFinal: dataFinal
+            }),
+            headers: { "Content-Type": "application/json" }
+        });
+        const ocorrencias = await response.json();
+        document.getElementById("debug").textContent = JSON.stringify(ocorrencias, null, 2);
+
+        if (ocorrencias.length === 0) {
+            document.getElementById("resultado").innerHTML = "<p>Nenhuma ocorrência encontrada.</p>";
+            return;
+        }
+
+        // Monta tabela
+        let html = "<table><thead><tr>";
+        const cols = Object.keys(ocorrencias[0]);
+        cols.forEach(c => html += `<th>${c}</th>`);
+        html += "</tr></thead><tbody>";
+        ocorrencias.forEach(o => {
+            html += "<tr>";
+            cols.forEach(c => html += `<td>${o[c]}</td>`);
+            html += "</tr>";
+        });
+        html += "</tbody></table>";
+        document.getElementById("resultado").innerHTML = html;
+
+    } catch (err) {
+        document.getElementById("resultado").innerHTML = "<p>Erro ao consultar ocorrências.</p>";
+        document.getElementById("debug").textContent = "Erro ao consultar: " + err;
+    }
+}
+
+// Eventos
+document.getElementById("consultar").addEventListener("click", consultarOcorrencias);
+
+// Carrega salas ao abrir a página
 carregarSalas();
 </script>
 
