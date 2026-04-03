@@ -23,7 +23,7 @@ button { padding: 10px 15px; margin-left: 5px; cursor: pointer; }
 
 <body>
 <div class="container">
-  <h2>🔍 Consulta de Alunos 18</h2>
+  <h2>🔍 Consulta de Alunos</h2>
   <input type="text" id="busca" placeholder="Pesquisar qualquer campo">
   <button onclick="buscar()">Buscar</button>
 
@@ -56,6 +56,17 @@ function montarFoto(id) {
   id = String(id).trim();
   if (id.length < 10) return null;
   return "https://lh3.googleusercontent.com/d/" + id;
+}
+
+// função para formatar datas em dd/mm/yyyy
+function formatarData(dataStr) {
+  if (!dataStr) return '-';
+  const d = new Date(dataStr);
+  if (isNaN(d)) return dataStr; // se não for data válida, retorna original
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0'); // meses vão de 0-11
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
 }
 
 // carregar dados
@@ -111,8 +122,8 @@ function renderizar() {
         <div>
           <strong>${a.nome}</strong><br>
           RA: ${a.ra}<br>
-          Data: ${a.data || '-'}<br>
-          Nascimento: ${a.nascimento || '-'}<br>
+          Data: ${formatarData(a.data)}<br>
+          Nascimento: ${formatarData(a.nascimento)}<br>
           Sala: ${a.sala}<br>
           Tutor: ${a.tutor}<br>
           Eletiva1: ${a.eletiva1 || '-'}<br>
