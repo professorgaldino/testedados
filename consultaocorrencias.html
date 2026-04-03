@@ -1,133 +1,152 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Consulta de Ocorrências - Debug</title>
-<style>
-body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-.container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
-label { display: block; margin-top: 10px; font-weight: bold; }
-select, input { width: 200px; padding: 5px; margin-top: 5px; }
-button { margin-top: 15px; padding: 10px 20px; }
-table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-th { background-color: #eee; }
-pre { background: #eee; padding: 10px; overflow: auto; }
-</style>
+  <meta charset="UTF-8">
+  <title>Consulta de Ocorrências</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    select, input { padding: 5px; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
+    .message { margin-top: 20px; font-weight: bold; color: red; }
+  </style>
 </head>
 <body>
-<div class="container">
-<h2>Consulta de Ocorrências - Debug</h2>
+
+<h2>Consulta de Ocorrências</h2>
 
 <label for="sala">Sala:</label>
 <select id="sala">
   <option value="">Todas</option>
 </select>
 
-<label for="dataInicial">Data Inicial:</label>
+<label for="dataInicial">Data Inicial (dd/mm/yyyy):</label>
 <input type="date" id="dataInicial">
 
-<label for="dataFinal">Data Final:</label>
+<label for="dataFinal">Data Final (dd/mm/yyyy):</label>
 <input type="date" id="dataFinal">
 
-<button onclick="consultar()">Consultar</button>
+<button id="consultar">Consultar</button>
 
-<h3>Resultado bruto (debug)</h3>
-<pre id="debug"></pre>
+<div class="message" id="mensagem"></div>
 
-<div id="resultado"></div>
-</div>
+<table id="tabela" style="display:none">
+  <thead>
+    <tr>
+      <th>Data do Fato</th>
+      <th>Hora do Fato</th>
+      <th>RA</th>
+      <th>Nome</th>
+      <th>Sala</th>
+      <th>Tutor</th>
+      <th>Professor</th>
+      <th>Descrição</th>
+      <th>Ação Tomada</th>
+      <th>Data Registro</th>
+      <th>Hora Registro</th>
+    </tr>
+  </thead>
+  <tbody id="corpoTabela"></tbody>
+</table>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxw8nHg3ZQ8MzzphvR5cIdlB_1DQ6MVtRfnE3KZLSRvzwtJlsd18KapclXqaEdp7CKk/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzZsHbmPXZuEL0OIae73Fz-ODqHb8HmPQgzxpHSny8-WmFx-hJc7imyAzFzeUl2zIiX/exec";
 
-// Puxar salas únicas
+// Função para converter data ISO para dd/mm/yyyy
+function formatarDataIsoParaPT(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
+// Carregar salas únicas
 async function carregarSalas() {
   try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "salas" })
+    const resp = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: "salas"})
     });
-    const salas = await res.json();
-    const select = document.getElementById("sala");
+    const salas = await resp.json();
+    console.log("Salas recebidas:", salas); // debug
+    const select = document.getElementById('sala');
     salas.forEach(s => {
-      const option = document.createElement("option");
+      const option = document.createElement('option');
       option.value = s;
       option.textContent = s;
       select.appendChild(option);
     });
-    document.getElementById("debug").textContent = "Salas carregadas: " + JSON.stringify(salas, null, 2);
-  } catch(err) {
-    console.error("Erro ao carregar salas:", err);
-    document.getElementById("debug").textContent = "Erro ao carregar salas: " + err;
+  } catch (e) {
+    console.error("Erro ao carregar salas:", e);
+    document.getElementById('mensagem').textContent = "Erro ao carregar salas";
   }
 }
 
-// Converte yyyy-mm-dd -> dd/MM/yyyy
-function formatarDataInput(data) {
-  if (!data) return "";
-  const [y,m,d] = data.split("-");
-  return `${d}/${m}/${y}`;
-}
-
+// Consultar ocorrências
 async function consultar() {
-  const sala = document.getElementById("sala").value;
-  const dataInicial = formatarDataInput(document.getElementById("dataInicial").value);
-  const dataFinal = formatarDataInput(document.getElementById("dataFinal").value);
+  const sala = document.getElementById('sala').value;
+  const dataInicial = document.getElementById('dataInicial').value;
+  const dataFinal = document.getElementById('dataFinal').value;
 
   try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
+    const resp = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         action: "consultar",
-        sala,
-        dataInicial,
-        dataFinal
+        sala: sala,
+        dataInicial: dataInicial,
+        dataFinal: dataFinal
       })
     });
-    const dados = await res.json();
-    const div = document.getElementById("resultado");
-    div.innerHTML = "";
-    
-    // Debug: mostrar dados brutos
-    document.getElementById("debug").textContent = JSON.stringify(dados, null, 2);
+    const resultados = await resp.json();
+    console.log("Resultados recebidos:", resultados); // debug
 
-    if (!dados.length) {
-      div.textContent = "Nenhuma ocorrência encontrada.";
+    const corpo = document.getElementById('corpoTabela');
+    corpo.innerHTML = "";
+    const tabela = document.getElementById('tabela');
+
+    if (!resultados || resultados.length === 0) {
+      tabela.style.display = "none";
+      document.getElementById('mensagem').textContent = "Nenhuma ocorrência encontrada";
       return;
     }
 
-    // Criar tabela
-    const table = document.createElement("table");
-    const header = ["Data do Fato","Hora do Fato","RA","Nome","Sala","Tutor","Professor","Descrição","Ação Tomada"];
-    const thead = document.createElement("thead");
-    const trHead = document.createElement("tr");
-    header.forEach(h => { const th = document.createElement("th"); th.textContent = h; trHead.appendChild(th); });
-    thead.appendChild(trHead);
-    table.appendChild(thead);
+    document.getElementById('mensagem').textContent = "";
+    tabela.style.display = "table";
 
-    const tbody = document.createElement("tbody");
-    dados.forEach(d => {
-      const tr = document.createElement("tr");
-      header.forEach(h => {
-        const td = document.createElement("td");
-        td.textContent = d[h] || "";
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
+    resultados.forEach(o => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${o["Data do Fato"]}</td>
+        <td>${o["Hora do Fato"]}</td>
+        <td>${o.ra}</td>
+        <td>${o.nome}</td>
+        <td>${o.Sala}</td>
+        <td>${o.Tutor}</td>
+        <td>${o.Professor}</td>
+        <td>${o["Descrição"]}</td>
+        <td>${o["Ação Tomada"]}</td>
+        <td>${o["Data Registro"]}</td>
+        <td>${o["Hora Registro"]}</td>
+      `;
+      corpo.appendChild(tr);
     });
-    table.appendChild(tbody);
-    div.appendChild(table);
-
-  } catch(err) {
-    console.error("Erro ao consultar ocorrências:", err);
-    document.getElementById("resultado").textContent = "Erro ao consultar ocorrências.";
-    document.getElementById("debug").textContent = err;
+  } catch (e) {
+    console.error("Erro ao consultar ocorrências:", e);
+    document.getElementById('mensagem').textContent = "Erro ao consultar ocorrências";
   }
 }
 
-// Inicializa
+document.getElementById('consultar').addEventListener('click', consultar);
 carregarSalas();
 </script>
+
 </body>
 </html>
