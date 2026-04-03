@@ -5,13 +5,8 @@
 <title>Consulta de Ocorrências</title>
 <style>
   body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-  .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+  .container { max-width: 1000px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
   h1 { text-align: center; color: #333; }
-  form { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-  label { display: block; font-weight: bold; margin-bottom: 5px; }
-  select, input[type="date"], button { padding: 6px 10px; font-size: 14px; }
-  button { cursor: pointer; background: #4CAF50; color: #fff; border: none; border-radius: 4px; }
-  button:hover { background: #45a049; }
   table { width: 100%; border-collapse: collapse; margin-top: 20px; }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
   th { background-color: #f2f2f2; }
@@ -20,25 +15,8 @@
 </head>
 <body>
 <div class="container">
-  <h1>Consulta de Ocorrências 13</h1>
-  <form id="formConsulta">
-    <div>
-      <label for="sala">Sala:</label>
-      <select id="sala"><option value="">Todas as salas</option></select>
-    </div>
-    <div>
-      <label for="dataInicial">Data Inicial:</label>
-      <input type="date" id="dataInicial">
-    </div>
-    <div>
-      <label for="dataFinal">Data Final:</label>
-      <input type="date" id="dataFinal">
-    </div>
-    <div>
-      <button type="submit">Consultar</button>
-    </div>
-  </form>
-  <div class="loading" id="loading" style="display:none;">Carregando...</div>
+  <h1>Consulta de Ocorrências 14</h1>
+  <div class="loading" id="loading">Carregando ocorrências...</div>
   <table id="tabelaResultados" style="display:none;">
     <thead>
       <tr>
@@ -62,37 +40,10 @@
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqkzJ35rcbPFkWA52M7wEZkSJYDAe-FfkD0qDvIFYbHwqgybvcO9WKF4L6SSYqohc/exec";
 
-async function carregarSalas() {
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "salas" })
-    });
-    const salas = await res.json();
-    const select = document.getElementById("sala");
-    salas.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s;
-      opt.textContent = s;
-      select.appendChild(opt);
-    });
-  } catch (err) {
-    console.error(err);
-    const select = document.getElementById("sala");
-    select.innerHTML = '<option value="">Erro ao carregar salas</option>';
-  }
-}
-
-async function consultarOcorrencias(event) {
-  event.preventDefault();
+async function carregarOcorrencias() {
   const tabela = document.getElementById("tabelaResultados");
   const tbody = tabela.querySelector("tbody");
   const loading = document.getElementById("loading");
-
-  const sala = document.getElementById("sala").value;
-  const dataInicial = document.getElementById("dataInicial").value;
-  const dataFinal = document.getElementById("dataFinal").value;
 
   tbody.innerHTML = "";
   tabela.style.display = "none";
@@ -102,12 +53,7 @@ async function consultarOcorrencias(event) {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "consultar",
-        sala: sala,
-        dataInicial: dataInicial,
-        dataFinal: dataFinal
-      })
+      body: JSON.stringify({ action: "consultar" })
     });
     const dados = await res.json();
 
@@ -135,15 +81,14 @@ async function consultarOcorrencias(event) {
     tabela.style.display = "table";
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:red;">Erro ao consultar ocorrências.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:red;">Erro ao carregar ocorrências.</td></tr>`;
     tabela.style.display = "table";
   } finally {
     loading.style.display = "none";
   }
 }
 
-document.getElementById("formConsulta").addEventListener("submit", consultarOcorrencias);
-window.addEventListener("load", carregarSalas);
+window.addEventListener("load", carregarOcorrencias);
 </script>
 </body>
 </html>
