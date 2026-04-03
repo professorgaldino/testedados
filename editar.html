@@ -21,9 +21,9 @@ pre { background: #eee; padding: 10px; border-radius: 6px; max-height: 300px; ov
 <body>
 
 <div class="container">
-  <h2>📝 Editar Alunos 3 - Debug</h2>
+  <h2>📝 Editar Alunos - 5</h2>
 
-  <input type="text" id="busca" placeholder="Pesquisar por RA ou Nome">
+  <input type="text" id="busca" placeholder="Pesquisar por RA, Nome ou Sala">
   <button onclick="buscarAluno()">Buscar</button>
 
   <form id="formulario">
@@ -79,9 +79,12 @@ function montarFoto(id) {
 function buscarAluno() {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
 
-  const alunosEncontrados = dados.filter(a =>
-    String(a.ra).toLowerCase() === valor || a.nome.toLowerCase() === valor
-  );
+  const alunosEncontrados = dados.filter(a => {
+    const ra = String(a.ra || "").toLowerCase();
+    const nome = String(a.nome || "").toLowerCase();
+    const sala = String(a.sala || "").toLowerCase();
+    return ra.includes(valor) || nome.includes(valor) || sala.includes(valor);
+  });
 
   document.getElementById("debugBusca").innerText = JSON.stringify(alunosEncontrados, null, 2);
 
@@ -135,9 +138,9 @@ function salvar() {
     method: "POST",
     body: JSON.stringify(data)
   })
-  .then(r => r.json())
+  .then(r => r.text())
   .then(res => {
-    document.getElementById("msg").innerHTML = res.msg;
+    document.getElementById("msg").innerHTML = "✅ Dados salvos";
     const index = dados.findIndex(a => String(a.ra) === String(data.ra));
     if (index !== -1) dados[index] = data;
     document.getElementById("debugJson").innerText = JSON.stringify(dados, null, 2);
