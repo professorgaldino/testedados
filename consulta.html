@@ -1,117 +1,161 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>DEBUG Alunos</title>
+<meta charset="UTF-8">
+<title>Consulta de Alunos</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f4f4;
-      padding: 20px;
-    }
+<style>
+  body {
+    font-family: Arial;
+    background: #f4f4f4;
+    padding: 20px;
+  }
 
-    .aluno {
-      background: white;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border-left: 5px solid #4CAF50;
-    }
+  .container {
+    max-width: 1000px;
+    margin: auto;
+  }
 
-    img {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
-      margin-bottom: 10px;
-      background: #ddd;
-    }
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
 
-    .debug {
-      background: #eee;
-      padding: 8px;
-      font-size: 12px;
-      margin-top: 5px;
-      white-space: pre-wrap;
-    }
-  </style>
+  .aluno {
+    background: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .paginacao {
+    text-align: center;
+    margin-top: 15px;
+  }
+
+  button {
+    padding: 8px 12px;
+    margin: 5px;
+    cursor: pointer;
+  }
+</style>
 </head>
 
 <body>
 
-<h2>🔍 DEBUG - Dados dos Alunos 11</h2>
+<div class="container">
 
-<button onclick="carregar()">Carregar Dados</button>
+  <h2>🔍 Consulta de Alunos 12</h2>
 
-<div id="resultado"></div>
+  <input type="text" id="busca" placeholder="Pesquisar por RA, Nome ou Sala" onkeyup="filtrar()">
+
+  <div id="resultado"></div>
+
+  <div class="paginacao">
+    <button onclick="anterior()">⬅ Anterior</button>
+    <span id="pagina"></span>
+    <button onclick="proximo()">Próximo ➡</button>
+  </div>
+
+</div>
 
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
-// 🔥 NOVA FUNÇÃO (funciona no GitHub Pages)
+let dados = [];
+let filtrados = [];
+let paginaAtual = 1;
+const porPagina = 5;
+
+// 🔥 foto funcionando
 function montarFoto(id) {
-  if (!id) return "https://via.placeholder.com/70";
-
+  if (!id) return "https://via.placeholder.com/60";
   id = String(id).trim();
-
-  // 🔥 formato que realmente funciona
   return "https://lh3.googleusercontent.com/d/" + id;
 }
 
 function carregar() {
-  const div = document.getElementById("resultado");
-  div.innerHTML = "Carregando...";
-
   fetch(url)
     .then(r => r.json())
     .then(data => {
-
-      div.innerHTML = "";
-
-      data.forEach((a, i) => {
-
-        const urlFoto = montarFoto(a.foto);
-
-        console.log("ALUNO:", a);
-        console.log("URL FOTO:", urlFoto);
-
-        div.innerHTML += `
-          <div class="aluno">
-
-            <img src="${urlFoto}"
-                 onerror="this.onerror=null; this.src='https://via.placeholder.com/70'">
-
-            <strong>${a.nome}</strong><br>
-
-            RA: ${a.ra}<br>
-            Nascimento: ${a.nascimento}<br>
-            Sala: ${a.sala}<br>
-            Tutor: ${a.tutor}<br>
-            Eletiva1: ${a.eletiva1}<br>
-            Eletiva2: ${a.eletiva2}<br>
-
-            <div class="debug">
-FOTO (valor bruto): ${a.foto}
-
-URL gerada (nova):
-${urlFoto}
-
-OBJETO COMPLETO:
-${JSON.stringify(a, null, 2)}
-            </div>
-
-          </div>
-        `;
-      });
-
-    })
-    .catch(err => {
-      div.innerHTML = "Erro ao carregar";
-      console.error(err);
+      dados = data;
+      filtrados = data;
+      renderizar();
     });
 }
+
+function filtrar() {
+  const valor = document.getElementById("busca").value.toLowerCase();
+
+  filtrados = dados.filter(a =>
+    String(a.ra).includes(valor) ||
+    a.nome.toLowerCase().includes(valor) ||
+    a.sala.toLowerCase().includes(valor)
+  );
+
+  paginaAtual = 1;
+  renderizar();
+}
+
+function renderizar() {
+  const inicio = (paginaAtual - 1) * porPagina;
+  const fim = inicio + porPagina;
+
+  const paginaDados = filtrados.slice(inicio, fim);
+
+  const div = document.getElementById("resultado");
+  div.innerHTML = "";
+
+  if (paginaDados.length === 0) {
+    div.innerHTML = "❌ Nenhum resultado encontrado";
+    return;
+  }
+
+  paginaDados.forEach(a => {
+    div.innerHTML += `
+      <div class="aluno">
+        <img src="${montarFoto(a.foto)}" onerror="this.src='https://via.placeholder.com/60'">
+        <div>
+          <strong>${a.nome}</strong><br>
+          RA: ${a.ra}<br>
+          Sala: ${a.sala}<br>
+          Tutor: ${a.tutor}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("pagina").innerText =
+    "Página " + paginaAtual + " de " + Math.ceil(filtrados.length / porPagina);
+}
+
+function proximo() {
+  if (paginaAtual < Math.ceil(filtrados.length / porPagina)) {
+    paginaAtual++;
+    renderizar();
+  }
+}
+
+function anterior() {
+  if (paginaAtual > 1) {
+    paginaAtual--;
+    renderizar();
+  }
+}
+
+// 🔥 inicia
+carregar();
 </script>
 
 </body>
