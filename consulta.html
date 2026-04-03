@@ -12,18 +12,19 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
     }
 
     button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 15px;
       background: #4CAF50;
       color: white;
       border: none;
       cursor: pointer;
+      font-size: 16px;
     }
 
     .msg {
@@ -40,6 +41,7 @@
       display: flex;
       gap: 15px;
       align-items: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
 
     img {
@@ -48,13 +50,17 @@
       border-radius: 50%;
       object-fit: cover;
     }
+
+    .info {
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
 
 <div class="container">
-  <h2>📋 Lista de Alunos 7</h2>
+  <h2>📋 Lista de alunos 8</h2>
 
   <button onclick="carregar()">Carregar Alunos</button>
 
@@ -65,10 +71,15 @@
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
-// 🔥 Agora recebe apenas o ID
 function montarFoto(id) {
   if (!id) return "https://via.placeholder.com/70";
   return "https://drive.google.com/uc?export=view&id=" + id;
+}
+
+function formatarData(data) {
+  if (!data) return "";
+  const d = new Date(data);
+  return d.toLocaleDateString("pt-BR");
 }
 
 function carregar() {
@@ -98,9 +109,10 @@ function carregar() {
         resultado.innerHTML += `
           <div class="aluno">
             <img src="${montarFoto(a.foto)}">
-            <div>
+            <div class="info">
               <strong>${a.nome}</strong><br>
               RA: ${a.ra}<br>
+              Nascimento: ${formatarData(a.nascimento)}<br>
               Sala: ${a.sala}<br>
               Tutor: ${a.tutor}<br>
               Eletivas: ${a.eletiva1} / ${a.eletiva2}
