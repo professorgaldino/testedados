@@ -2,10 +2,10 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editar Alunos</title>
+<title>Editar Alunos - Debug</title>
 <style>
 body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-.container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+.container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
 input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
 button { background: #4CAF50; color: white; border: none; cursor: pointer; }
 button:hover { opacity: 0.9; }
@@ -15,49 +15,38 @@ button:hover { opacity: 0.9; }
 .popup img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; }
 .fechar { position: absolute; top:15px; right:25px; color:white; font-size:28px; font-weight:bold; cursor:pointer; opacity:0.7; }
 .fechar:hover { opacity:1; }
+pre { background: #eee; padding: 10px; border-radius: 6px; max-height: 300px; overflow-y: auto; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>📝 Editar Alunos 2</h2>
+  <h2>📝 Editar Alunos 3 - Debug</h2>
 
   <input type="text" id="busca" placeholder="Pesquisar por RA ou Nome">
   <button onclick="buscarAluno()">Buscar</button>
 
   <form id="formulario">
-    <label>Data</label>
-    <input type="text" id="data" readonly>
-
-    <label>RA</label>
-    <input type="text" id="ra">
-
-    <label>Nome</label>
-    <input type="text" id="nome">
-
-    <label>Data de Nascimento</label>
-    <input type="date" id="nascimento">
-
-    <label>Foto (ID do Google Drive)</label>
-    <input type="text" id="foto">
+    <label>Data</label><input type="text" id="data" readonly>
+    <label>RA</label><input type="text" id="ra">
+    <label>Nome</label><input type="text" id="nome">
+    <label>Data de Nascimento</label><input type="date" id="nascimento">
+    <label>Foto (ID do Google Drive)</label><input type="text" id="foto">
     <div id="mostraFoto"></div>
-
-    <label>Sala</label>
-    <input type="text" id="sala">
-
-    <label>Tutor</label>
-    <input type="text" id="tutor">
-
-    <label>Eletiva 1</label>
-    <input type="text" id="eletiva1">
-
-    <label>Eletiva 2</label>
-    <input type="text" id="eletiva2">
-
+    <label>Sala</label><input type="text" id="sala">
+    <label>Tutor</label><input type="text" id="tutor">
+    <label>Eletiva 1</label><input type="text" id="eletiva1">
+    <label>Eletiva 2</label><input type="text" id="eletiva2">
     <button type="button" onclick="salvar()">Salvar</button>
   </form>
 
   <div id="msg"></div>
+
+  <h3>🛠 Debug:</h3>
+  <div>JSON completo recebido:</div>
+  <pre id="debugJson"></pre>
+  <div>Resultado da pesquisa:</div>
+  <pre id="debugBusca"></pre>
 </div>
 
 <!-- POPUP -->
@@ -70,10 +59,13 @@ button:hover { opacity: 0.9; }
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 let dados = [];
 
-// carregar todos os dados para pesquisa
+// carregar dados
 fetch(url)
   .then(r => r.json())
-  .then(data => { dados = data; });
+  .then(data => {
+    dados = data;
+    document.getElementById("debugJson").innerText = JSON.stringify(dados, null, 2);
+  });
 
 // montar foto
 function montarFoto(id) {
@@ -86,21 +78,26 @@ function montarFoto(id) {
 // busca aluno
 function buscarAluno() {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
-  const aluno = dados.find(a => 
+
+  const alunosEncontrados = dados.filter(a =>
     String(a.ra).toLowerCase() === valor || a.nome.toLowerCase() === valor
   );
+
+  document.getElementById("debugBusca").innerText = JSON.stringify(alunosEncontrados, null, 2);
 
   const msg = document.getElementById("msg");
   msg.innerHTML = "";
 
-  if (!aluno) {
+  if (alunosEncontrados.length === 0) {
     msg.innerHTML = "❌ Aluno não encontrado";
     document.getElementById("formulario").reset();
     document.getElementById("mostraFoto").innerHTML = "";
     return;
   }
 
-  // preencher formulário
+  // pegar o primeiro aluno encontrado
+  const aluno = alunosEncontrados[0];
+
   document.getElementById("data").value = aluno.data || "";
   document.getElementById("ra").value = aluno.ra || "";
   document.getElementById("nome").value = aluno.nome || "";
@@ -111,9 +108,7 @@ function buscarAluno() {
   document.getElementById("eletiva1").value = aluno.eletiva1 || "";
   document.getElementById("eletiva2").value = aluno.eletiva2 || "";
 
-  // mostrar foto
-  const fotoID = aluno.foto;
-  const fotoURL = montarFoto(fotoID);
+  const fotoURL = montarFoto(aluno.foto);
   const divFoto = document.getElementById("mostraFoto");
   if (fotoURL) {
     divFoto.innerHTML = `<img class="foto" src="${fotoURL}" onclick="abrirPopup('${fotoURL}')">`;
@@ -143,9 +138,9 @@ function salvar() {
   .then(r => r.json())
   .then(res => {
     document.getElementById("msg").innerHTML = res.msg;
-    // atualizar local para refletir mudanças
     const index = dados.findIndex(a => String(a.ra) === String(data.ra));
     if (index !== -1) dados[index] = data;
+    document.getElementById("debugJson").innerText = JSON.stringify(dados, null, 2);
   })
   .catch(err => {
     document.getElementById("msg").innerHTML = "❌ Erro ao salvar";
