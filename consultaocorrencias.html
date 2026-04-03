@@ -1,154 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Consulta de Ocorrências 12</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-    h1 { text-align: center; color: #333; }
-    form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
-    label { font-weight: bold; }
-    select, input { padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
-    button { padding: 8px 16px; border: none; border-radius: 4px; background: #2196F3; color: white; cursor: pointer; }
-    button:hover { background: #1976D2; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 14px; }
-    th { background-color: #f2f2f2; }
-    .status { margin-top: 12px; font-weight: bold; }
-    .error { color: red; }
-  </style>
+<meta charset="UTF-8">
+<title>Consulta de Ocorrências</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+  .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+  h1 { text-align: center; color: #333; }
+  form { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  label { display: block; font-weight: bold; margin-bottom: 5px; }
+  select, input[type="date"], button { padding: 6px 10px; font-size: 14px; }
+  button { cursor: pointer; background: #4CAF50; color: #fff; border: none; border-radius: 4px; }
+  button:hover { background: #45a049; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background-color: #f2f2f2; }
+  .loading { text-align: center; color: #555; margin-top: 20px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Consulta de Ocorrências</h1>
+<div class="container">
+  <h1>Consulta de Ocorrências 13</h1>
+  <form id="formConsulta">
+    <div>
+      <label for="sala">Sala:</label>
+      <select id="sala"><option value="">Todas as salas</option></select>
+    </div>
+    <div>
+      <label for="dataInicial">Data Inicial:</label>
+      <input type="date" id="dataInicial">
+    </div>
+    <div>
+      <label for="dataFinal">Data Final:</label>
+      <input type="date" id="dataFinal">
+    </div>
+    <div>
+      <button type="submit">Consultar</button>
+    </div>
+  </form>
+  <div class="loading" id="loading" style="display:none;">Carregando...</div>
+  <table id="tabelaResultados" style="display:none;">
+    <thead>
+      <tr>
+        <th>Data Registro</th>
+        <th>Hora Registro</th>
+        <th>RA</th>
+        <th>Nome</th>
+        <th>Sala</th>
+        <th>Tutor</th>
+        <th>Professor</th>
+        <th>Descrição</th>
+        <th>Ação Tomada</th>
+        <th>Data do Fato</th>
+        <th>Hora do Fato</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-    <form id="consultaForm">
-      <div>
-        <label for="sala">Sala:</label><br>
-        <select id="sala" name="sala">
-          <option value="">Carregando salas...</option>
-        </select>
-      </div>
-      <div>
-        <label for="dataInicial">Data Inicial:</label><br>
-        <input type="date" id="dataInicial" name="dataInicial">
-      </div>
-      <div>
-        <label for="dataFinal">Data Final:</label><br>
-        <input type="date" id="dataFinal" name="dataFinal">
-      </div>
-      <div>
-        <button type="submit">Consultar</button>
-      </div>
-    </form>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqkzJ35rcbPFkWA52M7wEZkSJYDAe-FfkD0qDvIFYbHwqgybvcO9WKF4L6SSYqohc/exec";
 
-    <div class="status" id="status"></div>
-
-    <table id="tabelaResultados">
-      <thead>
-        <tr>
-          <th>Data Registro</th>
-          <th>Hora Registro</th>
-          <th>RA</th>
-          <th>Nome</th>
-          <th>Sala</th>
-          <th>Tutor</th>
-          <th>Professor</th>
-          <th>Descrição</th>
-          <th>Ação Tomada</th>
-          <th>Data do Fato</th>
-          <th>Hora do Fato</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="11" style="text-align:center;">Nenhum resultado</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDmxHHLs7tuFlyQw3VRqg_Rrxr95X_JHHITgbJxrcfjCD95RscDKUNJ_k6F_53Inbp/exec";
-
-    // Carrega salas únicas
-    async function carregarSalas() {
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "salas" })
-        });
-        const salas = await res.json();
-        const select = document.getElementById("sala");
-        select.innerHTML = '<option value="">Todas as salas</option>';
-        salas.forEach(s => {
-          const opt = document.createElement("option");
-          opt.value = s;
-          opt.textContent = s;
-          select.appendChild(opt);
-        });
-      } catch (err) {
-        console.error(err);
-        const select = document.getElementById("sala");
-        select.innerHTML = '<option value="">Erro ao carregar salas</option>';
-      }
-    }
-
-    carregarSalas();
-
-    // Consulta ocorrências
-    document.getElementById("consultaForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const statusDiv = document.getElementById("status");
-      const tbody = document.querySelector("#tabelaResultados tbody");
-      statusDiv.textContent = "";
-      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">Carregando...</td></tr>';
-
-      const data = {
-        action: "consultar",
-        sala: document.getElementById("sala").value,
-        dataInicial: document.getElementById("dataInicial").value,
-        dataFinal: document.getElementById("dataFinal").value
-      };
-
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        });
-        const resultados = await res.json();
-        tbody.innerHTML = "";
-
-        if (resultados.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">Nenhum resultado encontrado</td></tr>';
-          return;
-        }
-
-        resultados.forEach(r => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${r["Data Registro"] || ""}</td>
-            <td>${r["Hora Registro"] || ""}</td>
-            <td>${r.ra || ""}</td>
-            <td>${r.nome || ""}</td>
-            <td>${r.Sala || ""}</td>
-            <td>${r.Tutor || ""}</td>
-            <td>${r.Professor || ""}</td>
-            <td>${r["Descrição"] || ""}</td>
-            <td>${r["Ação Tomada"] || ""}</td>
-            <td>${r["Data do Fato"] || ""}</td>
-            <td>${r["Hora do Fato"] || ""}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">Erro ao carregar dados</td></tr>';
-        statusDiv.textContent = "Erro de conexão: " + err.message;
-        statusDiv.className = "status error";
-      }
+async function carregarSalas() {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "salas" })
     });
-  </script>
+    const salas = await res.json();
+    const select = document.getElementById("sala");
+    salas.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error(err);
+    const select = document.getElementById("sala");
+    select.innerHTML = '<option value="">Erro ao carregar salas</option>';
+  }
+}
+
+async function consultarOcorrencias(event) {
+  event.preventDefault();
+  const tabela = document.getElementById("tabelaResultados");
+  const tbody = tabela.querySelector("tbody");
+  const loading = document.getElementById("loading");
+
+  const sala = document.getElementById("sala").value;
+  const dataInicial = document.getElementById("dataInicial").value;
+  const dataFinal = document.getElementById("dataFinal").value;
+
+  tbody.innerHTML = "";
+  tabela.style.display = "none";
+  loading.style.display = "block";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "consultar",
+        sala: sala,
+        dataInicial: dataInicial,
+        dataFinal: dataFinal
+      })
+    });
+    const dados = await res.json();
+
+    if (dados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">Nenhuma ocorrência encontrada.</td></tr>`;
+    } else {
+      dados.forEach(o => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${o["Data Registro"] || ""}</td>
+          <td>${o["Hora Registro"] || ""}</td>
+          <td>${o.ra || ""}</td>
+          <td>${o.nome || ""}</td>
+          <td>${o.Sala || ""}</td>
+          <td>${o.Tutor || ""}</td>
+          <td>${o.Professor || ""}</td>
+          <td>${o["Descrição"] || ""}</td>
+          <td>${o["Ação Tomada"] || ""}</td>
+          <td>${o["Data do Fato"] || ""}</td>
+          <td>${o["Hora do Fato"] || ""}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    tabela.style.display = "table";
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:red;">Erro ao consultar ocorrências.</td></tr>`;
+    tabela.style.display = "table";
+  } finally {
+    loading.style.display = "none";
+  }
+}
+
+document.getElementById("formConsulta").addEventListener("submit", consultarOcorrencias);
+window.addEventListener("load", carregarSalas);
+</script>
 </body>
 </html>
