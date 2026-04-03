@@ -16,11 +16,23 @@
       margin: auto;
     }
 
-    input {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 15px;
-      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .msg {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
     }
 
     .aluno {
@@ -31,7 +43,6 @@
       display: flex;
       gap: 10px;
       align-items: center;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
 
     img {
@@ -40,69 +51,68 @@
       border-radius: 50%;
       object-fit: cover;
     }
-
-    .info {
-      font-size: 14px;
-    }
   </style>
 </head>
 
 <body>
 
 <div class="container">
-  <h2>🔍 Buscar Aluno</h2>
+  <h2>🔍 Consulta de Alunos 4</h2>
 
-  <input type="text" id="busca" placeholder="Digite o nome ou RA...">
+  <input type="text" id="busca" placeholder="Digite nome ou RA">
 
+  <button onclick="consultar()">Consultar</button>
+
+  <div class="msg" id="msg"></div>
   <div id="resultado"></div>
 </div>
 
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
-let alunos = [];
-
-// Carrega os dados da planilha
-fetch(url)
-  .then(res => res.json())
-  .then(data => {
-    alunos = data;
-  })
-  .catch(err => {
-    console.error("Erro ao carregar dados:", err);
-  });
-
-// Busca em tempo real
-document.getElementById("busca").addEventListener("input", function() {
-  const valor = this.value.toLowerCase();
+function consultar() {
+  const valor = document.getElementById("busca").value.toLowerCase();
   const resultado = document.getElementById("resultado");
+  const msg = document.getElementById("msg");
 
   resultado.innerHTML = "";
+  msg.innerHTML = "Carregando...";
 
-  const filtrados = alunos.filter(a =>
-    a.nome.toLowerCase().includes(valor) ||
-    a.ra.toString().includes(valor)
-  );
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
 
-  if (filtrados.length === 0) {
-    resultado.innerHTML = "<p>Nenhum aluno encontrado</p>";
-    return;
-  }
+      const filtrados = data.filter(a =>
+        a.nome.toLowerCase().includes(valor) ||
+        a.ra.toString().includes(valor)
+      );
 
-  filtrados.forEach(a => {
-    resultado.innerHTML += `
-      <div class="aluno">
-        <img src="${a.foto || 'https://via.placeholder.com/60'}">
-        <div class="info">
-          <strong>${a.nome}</strong><br>
-          RA: ${a.ra}<br>
-          Sala: ${a.sala}<br>
-          Tutor: ${a.tutor}
-        </div>
-      </div>
-    `;
-  });
-});
+      if (filtrados.length === 0) {
+        msg.innerHTML = "❌ Nenhum aluno encontrado";
+        return;
+      }
+
+      msg.innerHTML = "✅ Resultado encontrado";
+
+      filtrados.forEach(a => {
+        resultado.innerHTML += `
+          <div class="aluno">
+            <img src="${a.foto || 'https://via.placeholder.com/60'}">
+            <div>
+              <strong>${a.nome}</strong><br>
+              RA: ${a.ra}<br>
+              Sala: ${a.sala}
+            </div>
+          </div>
+        `;
+      });
+
+    })
+    .catch(err => {
+      msg.innerHTML = "❌ Falha na consulta";
+      console.error(err);
+    });
+}
 </script>
 
 </body>
