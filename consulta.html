@@ -57,7 +57,7 @@
 <body>
 
 <div class="container">
-  <h2>🔍 Consulta de Alunos 4</h2>
+  <h2>🔍 Consulta de Alunos 5</h2>
 
   <input type="text" id="busca" placeholder="Digite nome ou RA">
 
@@ -79,16 +79,25 @@ function consultar() {
   msg.innerHTML = "Carregando...";
 
   fetch(url)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Erro na resposta do servidor");
+      }
+      return res.json();
+    })
     .then(data => {
 
+      if (!Array.isArray(data)) {
+        throw new Error("Resposta inválida");
+      }
+
       const filtrados = data.filter(a =>
-        a.nome.toLowerCase().includes(valor) ||
-        a.ra.toString().includes(valor)
+        (a.nome && a.nome.toLowerCase().includes(valor)) ||
+        (a.ra && a.ra.toString().includes(valor))
       );
 
       if (filtrados.length === 0) {
-        msg.innerHTML = "❌ Nenhum aluno encontrado";
+        msg.innerHTML = "❌ Aluno não encontrado";
         return;
       }
 
@@ -101,7 +110,8 @@ function consultar() {
             <div>
               <strong>${a.nome}</strong><br>
               RA: ${a.ra}<br>
-              Sala: ${a.sala}
+              Sala: ${a.sala}<br>
+              Tutor: ${a.tutor}
             </div>
           </div>
         `;
@@ -110,7 +120,7 @@ function consultar() {
     })
     .catch(err => {
       msg.innerHTML = "❌ Falha na consulta";
-      console.error(err);
+      console.error("Erro:", err);
     });
 }
 </script>
