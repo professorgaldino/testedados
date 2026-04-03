@@ -64,7 +64,7 @@ button {
   cursor: pointer;
 }
 
-/* POPUP */
+/* 🔥 POPUP PROFISSIONAL */
 .popup {
   display: none;
   position: fixed;
@@ -85,6 +85,7 @@ button {
   border-radius: 8px;
 }
 
+/* ❌ botão discreto */
 .fechar {
   position: absolute;
   top: 15px;
@@ -105,7 +106,8 @@ button {
 <body>
 
 <div class="container">
-  <h2>🔍 Consulta de Alunos 16</h2>
+  <h2>🔍 Consulta de Alunos 17</h2>
+
   <input type="text" id="busca" placeholder="Pesquisar por RA, Nome ou Sala">
 
   <div id="resultado"></div>
@@ -117,7 +119,7 @@ button {
   </div>
 </div>
 
-<!-- POPUP -->
+<!-- 🔥 POPUP -->
 <div id="popup" class="popup" onclick="fecharPopup(event)">
   <span class="fechar" onclick="fecharPopup(event)">×</span>
   <img id="imgPopup">
@@ -131,15 +133,18 @@ let filtrados = [];
 let paginaAtual = 1;
 const porPagina = 5;
 
-// monta foto do Google Drive
+// 🔥 montar foto (Google Drive)
 function montarFoto(id) {
   if (!id) return null;
+
   id = String(id).trim();
+
   if (id.length < 10) return null;
-  return "https://drive.google.com/uc?export=view&id=" + id;
+
+  return "https://lh3.googleusercontent.com/d/" + id;
 }
 
-// carregar dados
+// 🔥 carregar dados
 function carregar() {
   fetch(url)
     .then(r => r.json())
@@ -150,27 +155,23 @@ function carregar() {
     });
 }
 
-// busca parcial funcional
+// 🔥 busca corrigida
 document.getElementById("busca").addEventListener("input", () => {
   const valor = document.getElementById("busca").value.toLowerCase().trim();
 
-  if (!valor) {
-    filtrados = dados;
-  } else {
-    filtrados = dados.filter(a => {
-      const ra = String(a.ra || "").toLowerCase();
-      const nome = (a.nome || "").toLowerCase();
-      const sala = (a.sala || "").toLowerCase();
+  filtrados = dados.filter(a => {
+    const ra = String(a.ra || "").toLowerCase();
+    const nome = (a.nome || "").toLowerCase();
+    const sala = (a.sala || "").toLowerCase();
 
-      return ra.includes(valor) || nome.includes(valor) || sala.includes(valor);
-    });
-  }
+    return ra.includes(valor) || nome.includes(valor) || sala.includes(valor);
+  });
 
   paginaAtual = 1;
   renderizar();
 });
 
-// render
+// 🔥 render
 function renderizar() {
   const inicio = (paginaAtual - 1) * porPagina;
   const paginaDados = filtrados.slice(inicio, inicio + porPagina);
@@ -185,9 +186,14 @@ function renderizar() {
 
   paginaDados.forEach(a => {
     const foto = montarFoto(a.foto);
-    let fotoHTML = foto
-      ? `<img class="foto" src="${foto}" onclick="abrirPopup('${foto}')">`
-      : `<div class="sem-foto">❌</div>`;
+
+    let fotoHTML = "";
+
+    if (foto) {
+      fotoHTML = `<img class="foto" src="${foto}" onclick="abrirPopup('${foto}')">`;
+    } else {
+      fotoHTML = `<div class="sem-foto">❌</div>`;
+    }
 
     div.innerHTML += `
       <div class="aluno">
@@ -196,10 +202,7 @@ function renderizar() {
           <strong>${a.nome}</strong><br>
           RA: ${a.ra}<br>
           Sala: ${a.sala}<br>
-          Tutor: ${a.tutor}<br>
-          Nascimento: ${a.nascimento || '-'}<br>
-          Eletiva1: ${a.eletiva1 || '-'}<br>
-          Eletiva2: ${a.eletiva2 || '-'}
+          Tutor: ${a.tutor}
         </div>
       </div>
     `;
@@ -209,7 +212,7 @@ function renderizar() {
     "Página " + paginaAtual + " de " + Math.ceil(filtrados.length / porPagina);
 }
 
-// paginação
+// 🔥 paginação
 function proximo() {
   if (paginaAtual < Math.ceil(filtrados.length / porPagina)) {
     paginaAtual++;
@@ -224,14 +227,16 @@ function anterior() {
   }
 }
 
-// popup
+// 🔥 popup
 function abrirPopup(src) {
   document.getElementById("popup").style.display = "flex";
   document.getElementById("imgPopup").src = src;
 }
 
 function fecharPopup(e) {
+  // não fecha se clicar na imagem
   if (e.target.tagName === "IMG") return;
+
   document.getElementById("popup").style.display = "none";
 }
 
