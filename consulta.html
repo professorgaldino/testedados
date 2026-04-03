@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta de Alunos</title>
+  <title>Lista de Alunos</title>
 
   <style>
     body {
@@ -12,17 +12,14 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
     }
 
-    input, button {
+    button {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
-    }
-
-    button {
       background: #4CAF50;
       color: white;
       border: none;
@@ -57,11 +54,9 @@
 <body>
 
 <div class="container">
-  <h2>🔍 Consulta de Alunos 5</h2>
+  <h2>📋 Todos os Alunos 6</h2>
 
-  <input type="text" id="busca" placeholder="Digite nome ou RA">
-
-  <button onclick="consultar()">Consultar</button>
+  <button onclick="carregar()">Carregar Alunos</button>
 
   <div class="msg" id="msg"></div>
   <div id="resultado"></div>
@@ -70,40 +65,30 @@
 <script>
 const url = "https://script.google.com/macros/s/AKfycbxXnCBxqUpL-xQJTbXd5oVwPFBOGLBQ87-06FtWAh2MU-J3m3B9jrgJw_fd2DcTMkWHeQ/exec";
 
-function consultar() {
-  const valor = document.getElementById("busca").value.toLowerCase();
+function carregar() {
   const resultado = document.getElementById("resultado");
   const msg = document.getElementById("msg");
 
   resultado.innerHTML = "";
-  msg.innerHTML = "Carregando...";
+  msg.innerHTML = "Carregando dados...";
 
   fetch(url)
     .then(res => {
-      if (!res.ok) {
-        throw new Error("Erro na resposta do servidor");
-      }
+      if (!res.ok) throw new Error("Erro no servidor");
       return res.json();
     })
     .then(data => {
 
-      if (!Array.isArray(data)) {
-        throw new Error("Resposta inválida");
-      }
+      if (!Array.isArray(data)) throw new Error("Resposta inválida");
 
-      const filtrados = data.filter(a =>
-        (a.nome && a.nome.toLowerCase().includes(valor)) ||
-        (a.ra && a.ra.toString().includes(valor))
-      );
-
-      if (filtrados.length === 0) {
-        msg.innerHTML = "❌ Aluno não encontrado";
+      if (data.length === 0) {
+        msg.innerHTML = "❌ Nenhum aluno encontrado";
         return;
       }
 
-      msg.innerHTML = "✅ Resultado encontrado";
+      msg.innerHTML = "✅ Dados carregados";
 
-      filtrados.forEach(a => {
+      data.forEach(a => {
         resultado.innerHTML += `
           <div class="aluno">
             <img src="${a.foto || 'https://via.placeholder.com/60'}">
@@ -111,7 +96,8 @@ function consultar() {
               <strong>${a.nome}</strong><br>
               RA: ${a.ra}<br>
               Sala: ${a.sala}<br>
-              Tutor: ${a.tutor}
+              Tutor: ${a.tutor}<br>
+              Eletivas: ${a.eletiva1} / ${a.eletiva2}
             </div>
           </div>
         `;
@@ -119,8 +105,8 @@ function consultar() {
 
     })
     .catch(err => {
-      msg.innerHTML = "❌ Falha na consulta";
-      console.error("Erro:", err);
+      msg.innerHTML = "❌ Falha ao carregar dados";
+      console.error(err);
     });
 }
 </script>
