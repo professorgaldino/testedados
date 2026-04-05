@@ -4,48 +4,112 @@
   <meta charset="UTF-8">
   <title>Cadastro de Alunos</title>
 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
     body {
-      font-family: Arial;
-      background: #f4f4f4;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
       display: flex;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       padding: 20px;
     }
 
     .container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 350px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    input, button {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
       width: 100%;
-      padding: 10px;
-      margin-top: 8px;
+      max-width: 380px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      transition: 0.3s;
     }
 
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #45a049;
+    .container:hover {
+      transform: translateY(-2px);
     }
 
     h2 {
       text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+    }
+
+    button {
+      padding: 11px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+
+    button[type="submit"] {
+      background: #6366f1;
+      color: white;
+    }
+
+    button[type="submit"]:hover {
+      background: #4f46e5;
+    }
+
+    .secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 5px;
     }
 
     .msg {
       text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
+      margin-top: 15px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
     }
   </style>
 </head>
@@ -53,7 +117,7 @@
 <body>
 
 <div class="container">
-  <h2>Cadastro de Alunos 4</h2>
+  <h2>Cadastro de Alunos</h2>
 
   <form id="form">
     <input type="text" id="ra" placeholder="RA" required>
@@ -66,8 +130,11 @@
     <input type="text" id="eletiva2" placeholder="Eletiva 2º semestre">
 
     <button type="submit">Cadastrar</button>
-    <button onclick="window.location.href='https://professorgaldino.github.io/villani/consulta.html'">Ir para Consulta</button>
-    <button onclick="window.location.href='https://professorgaldino.github.io/villani/editar.html'">Editar aluno</button>
+
+    <div class="actions">
+      <button class="secondary" onclick="window.location.href='https://professorgaldino.github.io/villani/consulta.html'">Ir para Consulta</button>
+      <button class="secondary" onclick="window.location.href='https://professorgaldino.github.io/villani/editar.html'">Editar aluno</button>
+    </div>
   </form>
 
   <div class="msg" id="msg"></div>
