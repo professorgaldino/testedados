@@ -2,99 +2,80 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema Escolar • Gestão Simplificada</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* Reset básico */
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+
   body {
-    margin: 0;
-    font-family: 'Montserrat', sans-serif;
-    background: #eef2f7;
+    background: #f0f4f8;
     color: #333;
+    min-height: 100vh;
   }
 
-  /* Header moderno */
+  /* HEADER MODERNO */
   header {
-    background: linear-gradient(90deg, #4caf50 0%, #81c784 100%);
-    padding: 40px 20px;
-    text-align: center;
+    background: linear-gradient(90deg, #2196f3 0%, #64b5f6 100%);
+    padding: 25px 20px;
     color: white;
-    border-bottom-left-radius: 25px;
-    border-bottom-right-radius: 25px;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   }
 
   header h1 {
     font-size: 2rem;
-    margin: 0;
-    font-weight: 700;
-    letter-spacing: 1px;
+    margin-bottom: 5px;
   }
 
   header p {
-    margin: 10px 0 0;
     font-size: 1.1rem;
     opacity: 0.9;
-    font-weight: 500;
   }
 
-  main {
+  /* CONTAINER PRINCIPAL */
+  .container {
     max-width: 1100px;
     margin: 40px auto;
-    padding: 0 20px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
+    padding: 0 20px;
   }
 
+  /* CARD MODERNO */
   .card {
     background: white;
-    padding: 30px 20px;
-    border-radius: 15px;
+    border-radius: 12px;
+    padding: 25px 20px;
     text-align: center;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
     cursor: pointer;
     text-decoration: none;
-    color: inherit;
+    color: #333;
   }
 
   .card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 12px 25px rgba(33, 150, 243, 0.15);
   }
 
   .card h2 {
+    color: #1565c0;
+    margin-bottom: 12px;
     font-size: 1.4rem;
-    margin: 0;
-    color: #2e7d32;
   }
 
   .card p {
-    margin: 12px 0 0;
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #555;
   }
 
-  footer {
-    text-align: center;
-    padding: 20px 0;
-    color: #777;
-    font-size: 0.95rem;
-    margin-top: 60px;
-  }
-
+  /* RESPONSIVO */
   @media (max-width: 600px) {
-    header h1 {
-      font-size: 1.5rem;
-    }
-    header p {
-      font-size: 1rem;
-    }
-    .card h2 {
-      font-size: 1.2rem;
-    }
+    header h1 { font-size: 1.6rem; }
+    .card h2 { font-size: 1.2rem; }
   }
 </style>
 </head>
@@ -102,39 +83,34 @@
 
 <header>
   <h1>Sistema Escolar • Gestão Simplificada</h1>
-  <p>Therezinha Villani - <span id="ano"></span></p>
+  <p>Therezinha Villani • <span id="anoAtual"></span></p>
 </header>
 
-<main>
-  <a href="https://professorgaldino.github.io/villani/cadastrar.html" class="card">
-    <h2>➕ Cadastrar Aluno</h2>
-    <p>Registre novos alunos na escola</p>
+<div class="container">
+  <a class="card" href="https://professorgaldino.github.io/villani/cadastrar.html">
+    <h2>📝 Cadastrar Alunos</h2>
+    <p>Cadastre novos alunos na escola de forma rápida e organizada.</p>
   </a>
 
-  <a href="https://professorgaldino.github.io/villani/editar.html" class="card">
-    <h2>✏️ Editar Aluno</h2>
-    <p>Atualize informações de alunos já cadastrados</p>
+  <a class="card" href="https://professorgaldino.github.io/villani/editar.html">
+    <h2>✏️ Editar Alunos</h2>
+    <p>Edite informações de alunos já cadastrados facilmente.</p>
   </a>
 
-  <a href="https://professorgaldino.github.io/villani/consulta.html" class="card">
+  <a class="card" href="https://professorgaldino.github.io/villani/consulta.html">
     <h2>🔍 Consultar Alunos</h2>
-    <p>Visualize os alunos cadastrados</p>
+    <p>Consulte a lista completa de alunos cadastrados na escola.</p>
   </a>
 
-  <a href="https://professorgaldino.github.io/villani/consultaocorrencias.html" class="card">
-    <h2>📋 Consultar Ocorrências</h2>
-    <p>Veja todas as ocorrências registradas</p>
+  <a class="card" href="https://professorgaldino.github.io/villani/consultaocorrencias.html">
+    <h2>⚠️ Consultar Ocorrências</h2>
+    <p>Veja todas as ocorrências registradas de forma rápida e prática.</p>
   </a>
-</main>
-
-<footer>
-  &copy; <span id="ano-footer"></span> Therezinha Villani • Todos os direitos reservados
-</footer>
+</div>
 
 <script>
-  const anoAtual = new Date().getFullYear();
-  document.getElementById('ano').textContent = anoAtual;
-  document.getElementById('ano-footer').textContent = anoAtual;
+  // Atualiza automaticamente o ano
+  document.getElementById('anoAtual').textContent = new Date().getFullYear();
 </script>
 
 </body>
