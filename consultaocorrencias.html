@@ -2,54 +2,192 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta de Ocorrências com Filtro</title>
+  <title>Consulta de Ocorrências</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-    h1 { text-align: center; }
-    .filtros { margin-bottom: 20px; text-align: center; }
-    .filtros input, .filtros select { padding: 5px 10px; margin: 5px; font-size: 14px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
-    th { background: #eee; }
-    tr:nth-child(even) { background: #f9f9f9; }
-    .error { color: red; text-align: center; margin-top: 20px; }
-    .loading { text-align: center; font-weight: bold; }
-    .total { margin-top: 10px; font-weight: bold; text-align: center; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #f6f8fb;
+      padding: 30px;
+      color: #1f2937;
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .filtros label {
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filtros input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 4px;
+      transition: 0.2s;
+    }
+
+    .filtros input:focus {
+      border-color: #6366f1;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #6366f1;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 18px;
+    }
+
+    button:hover {
+      background: #4f46e5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      display: none;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tr {
+      border-bottom: 1px solid #eee;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+    }
+
+    .loading, .error, .total {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .loading {
+      font-weight: 500;
+      color: #6b7280;
+    }
+
+    .error {
+      color: #ef4444;
+    }
+
+    .total {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    @media (max-width: 768px) {
+      .filtros {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
-<h1>Consulta de Ocorrências 18</h1>
+<div class="container">
+  <h1>Consulta de Ocorrências</h1>
 
-<div class="filtros">
-  <label>Sala: <input type="text" id="filtroSala" placeholder="Ex: 6A"></label>
-  <label>Data Inicial: <input type="date" id="filtroDataInicial"></label>
-  <label>Data Final: <input type="date" id="filtroDataFinal"></label>
-  <button onclick="aplicarFiltro()">Filtrar</button>
+  <div class="card">
+    <div class="filtros">
+      <label>Sala
+        <input type="text" id="filtroSala" placeholder="Ex: 6A">
+      </label>
+
+      <label>Data Inicial
+        <input type="date" id="filtroDataInicial">
+      </label>
+
+      <label>Data Final
+        <input type="date" id="filtroDataFinal">
+      </label>
+
+      <button onclick="aplicarFiltro()">Filtrar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="loading" id="loading">Carregando ocorrências...</div>
+    <div class="error" id="error"></div>
+    <div class="total" id="totalOcorrencias"></div>
+
+    <table id="tabelaOcorrencias">
+      <thead>
+        <tr>
+          <th>Data Registro</th>
+          <th>Hora Registro</th>
+          <th>RA</th>
+          <th>Nome</th>
+          <th>Sala</th>
+          <th>Tutor</th>
+          <th>Professor</th>
+          <th>Descrição</th>
+          <th>Ação Tomada</th>
+          <th>Data do Fato</th>
+          <th>Hora do Fato</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
-
-<div class="loading" id="loading">Carregando ocorrências...</div>
-<div class="error" id="error"></div>
-<div class="total" id="totalOcorrencias"></div>
-
-<table id="tabelaOcorrencias">
-  <thead>
-    <tr>
-      <th>Data Registro</th>
-      <th>Hora Registro</th>
-      <th>RA</th>
-      <th>Nome</th>
-      <th>Sala</th>
-      <th>Tutor</th>
-      <th>Professor</th>
-      <th>Descrição</th>
-      <th>Ação Tomada</th>
-      <th>Data do Fato</th>
-      <th>Hora do Fato</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
 
 <script>
   const urlWebApp = "https://script.google.com/macros/s/AKfycby8ee_iqmJuTW7oTYCbL064ITYLJ74h-U6F3gDkT28j9BKf6tq6sSmFsZ7d5vS4so4/exec";
@@ -60,7 +198,6 @@
   const loadingDiv = document.getElementById("loading");
   const totalDiv = document.getElementById("totalOcorrencias");
 
-  // Formata data ISO -> dd/mm/yyyy
   function formatarData(isoString) {
     if (!isoString) return "";
     const d = new Date(isoString);
@@ -70,7 +207,6 @@
     return `${dia}/${mes}/${ano}`;
   }
 
-  // Formata hora ISO -> HH:mm
   function formatarHora(isoString) {
     if (!isoString) return "";
     const d = new Date(isoString);
@@ -79,7 +215,6 @@
     return `${horas}:${minutos}`;
   }
 
-  // Callback JSONP
   function mostrarOcorrencias(dados) {
     loadingDiv.style.display = "none";
 
@@ -89,7 +224,7 @@
     }
 
     todasOcorrencias = dados;
-    aplicarFiltro(); // mostra todos inicialmente
+    aplicarFiltro();
   }
 
   function aplicarFiltro() {
