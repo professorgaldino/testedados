@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Escolar • Gestão Simplificada</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f5f7fa;
+    color: #333;
+  }
+
+  header {
+    background: #4CAF50;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  header p {
+    margin: 5px 0 0;
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+
+  main {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: white;
+    padding: 25px 15px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.3rem;
+  }
+
+  .card p {
+    margin: 10px 0 0;
+    font-size: 0.95rem;
+    color: #555;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px 0;
+    color: #777;
+    font-size: 0.9rem;
+    margin-top: 50px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema Escolar • Gestão Simplificada</h1>
+  <p id="escola-info">Therezinha Villani - <span id="ano"></span></p>
+</header>
+
+<main>
+  <a href="https://professorgaldino.github.io/villani/cadastrar.html" class="card">
+    <h2>➕ Cadastrar Aluno</h2>
+    <p>Registre novos alunos na escola</p>
+  </a>
+
+  <a href="https://professorgaldino.github.io/villani/editar.html" class="card">
+    <h2>✏️ Editar Aluno</h2>
+    <p>Atualize informações de alunos já cadastrados</p>
+  </a>
+
+  <a href="https://professorgaldino.github.io/villani/consulta.html" class="card">
+    <h2>🔍 Consultar Alunos</h2>
+    <p>Visualize os alunos cadastrados</p>
+  </a>
+
+  <a href="https://professorgaldino.github.io/villani/consultaocorrencias.html" class="card">
+    <h2>📋 Consultar Ocorrências</h2>
+    <p>Veja todas as ocorrências registradas</p>
+  </a>
+</main>
+
+<footer>
+  &copy; <span id="ano-footer"></span> Therezinha Villani • Todos os direitos reservados
+</footer>
+
+<script>
+  // Atualiza automaticamente o ano
+  const anoAtual = new Date().getFullYear();
+  document.getElementById('ano').textContent = anoAtual;
+  document.getElementById('ano-footer').textContent = anoAtual;
+</script>
+
+</body>
+</html>
