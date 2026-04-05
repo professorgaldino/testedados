@@ -77,14 +77,14 @@
     transform: scale(0.98);
   }
 
-  @media (max-width: 600px) {
-    .container {
-      padding: 18px;
-    }
+  button:disabled {
+    background: #999;
+    cursor: not-allowed;
   }
-</style>
 
+</style>
 </head>
+
 <body>
 
 <div class="container">
@@ -121,7 +121,7 @@
   <label>Ação Tomada</label>
   <textarea id="acao" rows="2"></textarea>
   
-  <button onclick="enviar()">Enviar Ocorrência</button>
+  <button id="btnEnviar" onclick="enviar()">Enviar Ocorrência</button>
 </div>
 
 <script>
@@ -129,17 +129,17 @@
   const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
   let alunosExternos = [];
-  let salas = [];
 
   const salaSelect = document.getElementById("salaSelect");
   const alunoSelect = document.getElementById("alunoSelect");
 
+  // Carregar alunos
   fetch(ALUNOS_URL)
     .then(res => res.json())
     .then(data => {
       alunosExternos = data;
-      const salasSet = new Set(alunosExternos.map(a => a.sala).filter(Boolean));
-      salas = Array.from(salasSet).sort();
+
+      const salas = [...new Set(alunosExternos.map(a => a.sala).filter(Boolean))].sort();
 
       salas.forEach(sala => {
         const opt = document.createElement("option");
@@ -147,10 +147,13 @@
         opt.textContent = sala;
         salaSelect.appendChild(opt);
       });
-    });
+    })
+    .catch(err => alert("Erro ao carregar alunos"));
 
+  // Filtrar alunos
   salaSelect.addEventListener("change", function(){
     const selectedSala = this.value;
+
     alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
 
     const alunosFiltrados = alunosExternos.filter(a => a.sala === selectedSala);
@@ -168,14 +171,20 @@
     document.getElementById("ra").value = "";
   });
 
+  // Preencher tutor
   alunoSelect.addEventListener("change", function(){
     const selected = this.options[this.selectedIndex];
     document.getElementById("tutor").value = selected.getAttribute("data-tutor") || "";
     document.getElementById("ra").value = selected.value || "";
   });
 
+  // Enviar
   function enviar() {
-    const sala = document.getElementById("salaSelect").value;
+    const btn = document.getElementById("btnEnviar");
+    btn.disabled = true;
+    btn.innerText = "Enviando...";
+
+    const sala = salaSelect.value;
     const ra = document.getElementById("ra").value;
     const nome = alunoSelect.selectedOptions[0]?.getAttribute("data-nome");
     const professor = document.getElementById("professor").value;
@@ -186,6 +195,8 @@
 
     if(!sala || !ra || !professor || !descricao || !dataFato || !horaFato) {
       alert("Preencha todos os campos obrigatórios!");
+      btn.disabled = false;
+      btn.innerText = "Enviar Ocorrência";
       return;
     }
 
@@ -194,6 +205,9 @@
 
     fetch(WEBAPP_URL, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         sala,
         ra,
@@ -207,20 +221,20 @@
     })
     .then(res => res.json())
     .then(data => {
-      window.open(data.whatsapp, "_blank");
-      alert("Ocorrência registrada com sucesso!");
+      if(data.whatsapp){
+        window.open(data.whatsapp, "_blank");
+        alert("Ocorrência registrada com sucesso!");
+      } else {
+        alert("Erro no retorno do servidor");
+      }
 
-      salaSelect.selectedIndex = 0;
-      alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
-      document.getElementById("tutor").value = "";
-      document.getElementById("ra").value = "";
-      document.getElementById("professor").value = "";
-      document.getElementById("descricao").value = "";
-      document.getElementById("acao").value = "";
-      document.getElementById("dataFato").value = "";
-      document.getElementById("horaFato").value = "";
+      location.reload();
     })
-    .catch(err => alert("Erro ao enviar ocorrência: " + err));
+    .catch(err => {
+      alert("Erro ao enviar: verifique se o Web App foi implantado como 'Qualquer pessoa'");
+      btn.disabled = false;
+      btn.innerText = "Enviar Ocorrência";
+    });
   }
 </script>
 
