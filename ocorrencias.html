@@ -3,57 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <title>Registro de Ocorrências</title>
+
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-  .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
-  h2 { text-align: center; }
-  label { display: block; margin-top: 10px; }
-  input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; }
-  button { margin-top: 20px; padding: 10px 20px; background: #28a745; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-  button:hover { background: #218838; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #eef2f7, #e4ebf5);
+    margin: 0;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 520px;
+    margin: auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  label {
+    font-size: 14px;
+    margin-top: 12px;
+    display: block;
+    color: #555;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #dcdcdc;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
+  }
+
+  textarea {
+    resize: none;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 600px) {
+    .container {
+      padding: 18px;
+    }
+  }
 </style>
+
 </head>
 <body>
+
 <div class="container">
-  <h2>Registro de Ocorrências 4</h2>
+  <h2>Registro de Ocorrências</h2>
   
-  <label>Selecione a Sala:</label>
+  <label>Selecione a Sala</label>
   <select id="salaSelect">
     <option value="">Escolha uma sala</option>
   </select>
   
-  <label>Selecione o Aluno:</label>
+  <label>Selecione o Aluno</label>
   <select id="alunoSelect">
     <option value="">Escolha um aluno</option>
   </select>
   
-  <label>Tutor do Aluno:</label>
+  <label>Tutor do Aluno</label>
   <input type="text" id="tutor" readonly>
   
-  <label>RA do Aluno:</label>
+  <label>RA do Aluno</label>
   <input type="text" id="ra" readonly>
 
-  <label>Data do Fato:</label>
+  <label>Data do Fato</label>
   <input type="date" id="dataFato">
 
-  <label>Hora do Fato:</label>
+  <label>Hora do Fato</label>
   <input type="time" id="horaFato">
 
-  <label>Nome do Professor:</label>
+  <label>Nome do Professor</label>
   <input type="text" id="professor">
   
-  <label>Descrição da Ocorrência:</label>
+  <label>Descrição da Ocorrência</label>
   <textarea id="descricao" rows="4"></textarea>
   
-  <label>Ação Tomada:</label>
+  <label>Ação Tomada</label>
   <textarea id="acao" rows="2"></textarea>
   
   <button onclick="enviar()">Enviar Ocorrência</button>
 </div>
 
 <script>
-  // Novo WebApp de ocorrências
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzeExwAUYhwDTDMo2D1qVODAk3cDjOlPy4NGrs_XIN8hOcob7kEOpXYZwPRYVM9v0Wz/exec";
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwVSP8wfgQAcr8hNKUkqmCx_XRaZnsC028AzMEZD3gPaF9sM1oKlUarAqvmpWnBa8f3/exec";
   const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
   let alunosExternos = [];
@@ -62,28 +134,27 @@
   const salaSelect = document.getElementById("salaSelect");
   const alunoSelect = document.getElementById("alunoSelect");
 
-  // Buscar alunos externos
   fetch(ALUNOS_URL)
     .then(res => res.json())
     .then(data => {
       alunosExternos = data;
       const salasSet = new Set(alunosExternos.map(a => a.sala).filter(Boolean));
       salas = Array.from(salasSet).sort();
+
       salas.forEach(sala => {
         const opt = document.createElement("option");
         opt.value = sala;
         opt.textContent = sala;
         salaSelect.appendChild(opt);
       });
-    })
-    .catch(err => alert("Erro ao carregar alunos: " + err));
+    });
 
-  // Filtrar alunos por sala
   salaSelect.addEventListener("change", function(){
     const selectedSala = this.value;
     alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
-    
+
     const alunosFiltrados = alunosExternos.filter(a => a.sala === selectedSala);
+
     alunosFiltrados.forEach(aluno => {
       const opt = document.createElement("option");
       opt.value = aluno.ra;
@@ -97,15 +168,14 @@
     document.getElementById("ra").value = "";
   });
 
-  // Atualizar tutor e RA
   alunoSelect.addEventListener("change", function(){
     const selected = this.options[this.selectedIndex];
     document.getElementById("tutor").value = selected.getAttribute("data-tutor") || "";
     document.getElementById("ra").value = selected.value || "";
   });
 
-  // Enviar ocorrência
   function enviar() {
+    const sala = document.getElementById("salaSelect").value;
     const ra = document.getElementById("ra").value;
     const nome = alunoSelect.selectedOptions[0]?.getAttribute("data-nome");
     const professor = document.getElementById("professor").value;
@@ -114,18 +184,18 @@
     const dataFato = document.getElementById("dataFato").value;
     const horaFato = document.getElementById("horaFato").value;
 
-    if(!ra || !professor || !descricao || !dataFato || !horaFato) {
-      alert("Preencha RA, Professor, Descrição, Data e Hora do Fato!");
+    if(!sala || !ra || !professor || !descricao || !dataFato || !horaFato) {
+      alert("Preencha todos os campos obrigatórios!");
       return;
     }
 
-    // Formatar Data e Hora como dd/mm/yyyy e HH:mm
     const dataParts = dataFato.split("-");
     const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
 
     fetch(WEBAPP_URL, {
       method: "POST",
       body: JSON.stringify({
+        sala,
         ra,
         nome,
         professor,
@@ -140,7 +210,6 @@
       window.open(data.whatsapp, "_blank");
       alert("Ocorrência registrada com sucesso!");
 
-      // Resetar campos
       salaSelect.selectedIndex = 0;
       alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
       document.getElementById("tutor").value = "";
@@ -154,5 +223,6 @@
     .catch(err => alert("Erro ao enviar ocorrência: " + err));
   }
 </script>
+
 </body>
 </html>
