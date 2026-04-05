@@ -3,26 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <title>Editar Alunos</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-.container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
-input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
-button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-h2 { text-align: center; }
-label { font-weight: bold; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  padding: 30px;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 750px;
+  margin: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+}
+
+button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
 .mensagem {
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 10px;
   display: none;
-  font-weight: bold;
+  font-weight: 500;
+  font-size: 14px;
 }
-.mensagem.sucesso { background: #d4edda; color: #155724; }
-.mensagem.erro { background: #f8d7da; color: #721c24; }
 
-.debug { background: #eee; padding: 10px; margin-top: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+.mensagem.sucesso { background: #d1fae5; color: #065f46; }
+.mensagem.erro { background: #fee2e2; color: #991b1b; }
 
-/* 🔥 POPUP FOTO */
+.debug {
+  background: #f3f4f6;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.foto-aluno {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #e5e7eb;
+  margin-bottom: 10px;
+}
+
+.sem-foto {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #ef4444;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
 .popup {
   display: none;
   position: fixed;
@@ -31,70 +147,58 @@ label { font-weight: bold; }
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.95);
+  background: rgba(0,0,0,0.9);
   justify-content: center;
   align-items: center;
 }
+
 .popup img {
-  max-width: 95vw;
-  max-height: 95vh;
+  max-width: 90vw;
+  max-height: 90vh;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 12px;
 }
+
 .fechar {
   position: absolute;
-  top: 15px;
-  right: 25px;
+  top: 20px;
+  right: 30px;
   color: white;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: bold;
   cursor: pointer;
   opacity: 0.7;
 }
+
 .fechar:hover { opacity: 1; }
 
-/* FOTO PEQUENA NO FORMULÁRIO */
-.foto-aluno {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  border: 2px solid #ccc;
-  display: block;
-  margin-bottom: 10px;
-}
-.sem-foto {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  color: red;
-  font-weight: bold;
-  margin-bottom: 10px;
+@media (max-width: 600px) {
+  .search-box {
+    flex-direction: column;
+  }
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-  <h2>✏️ Editar Alunos 10</h2>
+  <h2>✏️ Editar Alunos</h2>
 
-  <input type="text" id="busca" placeholder="Digite RA ou Nome">
-  <button onclick="buscar()">Buscar</button>
+  <div class="search-box">
+    <input type="text" id="busca" placeholder="Digite RA ou Nome">
+    <button class="btn-primary" onclick="buscar()">Buscar</button>
+  </div>
 
-  <!-- mensagem de sucesso/falha -->
   <div id="mensagem" class="mensagem"></div>
 
   <div id="formulario">
     <label>RA</label>
     <input type="text" id="ra" disabled>
+
     <label>Nome</label>
     <input type="text" id="nome">
+
     <label>Data de Nascimento</label>
     <input type="date" id="nascimento">
 
@@ -103,23 +207,27 @@ label { font-weight: bold; }
       <img id="fotoAluno" class="foto-aluno" onclick="abrirPopupFoto()" style="display:none;">
       <div id="semFoto" class="sem-foto" style="display:none;">❌</div>
     </div>
+
     <input type="text" id="foto" placeholder="ID do Google Drive">
 
     <label>Sala</label>
     <input type="text" id="sala">
+
     <label>Tutor</label>
     <input type="text" id="tutor">
+
     <label>Eletiva 1° Semestre</label>
     <input type="text" id="eletiva1">
+
     <label>Eletiva 2° Semestre</label>
     <input type="text" id="eletiva2">
-    <button onclick="salvar()">💾 Salvar Alterações</button>
+
+    <button class="btn-success" onclick="salvar()">💾 Salvar Alterações</button>
   </div>
 
   <div class="debug" id="debug">⚠️ Nenhum aluno carregado ainda</div>
 </div>
 
-<!-- POPUP FOTO -->
 <div id="popup" class="popup" onclick="fecharPopup(event)">
   <span class="fechar" onclick="fecharPopup(event)">×</span>
   <img id="imgPopup">
@@ -131,7 +239,6 @@ const url = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzU
 let dados = [];
 let alunoAtual = null;
 
-// 🔥 carregar dados
 fetch(url)
   .then(res => res.json())
   .then(data => {
@@ -139,7 +246,6 @@ fetch(url)
     document.getElementById('debug').innerText = "✅ Dados carregados:\n" + JSON.stringify(dados, null, 2);
   });
 
-// 🔥 montar foto (Google Drive)
 function montarFoto(id) {
   if (!id) return null;
   id = String(id).trim();
@@ -147,7 +253,6 @@ function montarFoto(id) {
   return "https://lh3.googleusercontent.com/d/" + id;
 }
 
-// 🔥 buscar aluno por RA ou Nome
 function buscar() {
   const valor = document.getElementById('busca').value.toString().trim().toLowerCase();
   alunoAtual = dados.find(a => {
@@ -169,7 +274,6 @@ function buscar() {
     return;
   }
 
-  // preencher campos
   document.getElementById('ra').value = alunoAtual.ra;
   document.getElementById('nome').value = alunoAtual.nome || "";
   document.getElementById('nascimento').value = alunoAtual.nascimento ? alunoAtual.nascimento.split('T')[0] : "";
@@ -179,7 +283,6 @@ function buscar() {
   document.getElementById('eletiva1').value = alunoAtual.eletiva1 || "";
   document.getElementById('eletiva2').value = alunoAtual.eletiva2 || "";
 
-  // 🔥 mostrar foto ou X
   const src = montarFoto(alunoAtual.foto);
   if (src) {
     document.getElementById('fotoAluno').src = src;
@@ -193,7 +296,6 @@ function buscar() {
   debug.innerText = "✅ Aluno carregado para edição:\n" + JSON.stringify(alunoAtual, null, 2);
 }
 
-// 🔥 salvar alterações
 function salvar() {
   if (!alunoAtual) return;
 
@@ -220,7 +322,7 @@ function salvar() {
     msg.className = 'mensagem sucesso';
     msg.innerText = "✅ Alteração enviada com sucesso!";
     document.getElementById('debug').innerText = "POST enviado:\n" + JSON.stringify(postData, null, 2) + "\n\nResposta do servidor:\n" + resp;
-    buscar(); // recarrega o aluno atualizado
+    buscar();
   })
   .catch(err => {
     msg.className = 'mensagem erro';
@@ -229,7 +331,6 @@ function salvar() {
   });
 }
 
-// 🔥 POPUP FOTO
 function abrirPopupFoto() {
   const fotoId = document.getElementById('foto').value;
   const src = montarFoto(fotoId);
