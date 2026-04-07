@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências 32</title>
+<title>Registro de Ocorrências</title>
 
 <style>
   body {
@@ -107,7 +107,7 @@ const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxPTOr4djsiUFeBFcfj2
 const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
 const CACHE_KEY = "alunos_cache";
-const CACHE_TIME = 10 * 60 * 1000; // 10 min
+const CACHE_TIME = 10 * 60 * 1000;
 
 let alunosExternos = [];
 let enviando = false;
@@ -116,7 +116,7 @@ const salaSelect = document.getElementById("salaSelect");
 const alunoSelect = document.getElementById("alunoSelect");
 const botao = document.getElementById("btnEnviar");
 
-// 🚀 CARREGAMENTO COM CACHE
+// CACHE DE ALUNOS
 function carregarAlunos() {
 
   const cache = localStorage.getItem(CACHE_KEY);
@@ -131,12 +131,9 @@ function carregarAlunos() {
   fetch(ALUNOS_URL)
     .then(res => res.json())
     .then(data => {
-
       alunosExternos = data;
-
       localStorage.setItem(CACHE_KEY, JSON.stringify(data));
       localStorage.setItem(CACHE_KEY + "_time", Date.now());
-
       montarSalas();
     })
     .catch(() => {
@@ -144,7 +141,6 @@ function carregarAlunos() {
     });
 }
 
-// montar salas
 function montarSalas() {
   const salas = [...new Set(alunosExternos.map(a => a.sala).filter(Boolean))].sort();
 
@@ -158,7 +154,7 @@ function montarSalas() {
   });
 }
 
-// filtrar alunos
+// FILTRO
 salaSelect.addEventListener("change", function(){
   const selectedSala = this.value;
 
@@ -179,7 +175,7 @@ salaSelect.addEventListener("change", function(){
   document.getElementById("ra").value = "";
 });
 
-// preencher dados
+// PREENCHIMENTO
 alunoSelect.addEventListener("change", function(){
   const selected = this.options[this.selectedIndex];
 
@@ -187,7 +183,7 @@ alunoSelect.addEventListener("change", function(){
   document.getElementById("ra").value = selected.value || "";
 });
 
-// envio
+// ENVIO
 function enviar() {
 
   if (enviando) return;
@@ -226,10 +222,8 @@ function enviar() {
     horaFato
   });
 
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: formData
-  })
+  // 🔥 AQUI ESTÁ A CORREÇÃO
+  fetch(WEBAPP_URL + "?action=registrar&" + formData.toString())
   .then(res => res.json())
   .then(data => {
 
@@ -262,7 +256,7 @@ function enviar() {
   });
 }
 
-// iniciar
+// INICIAR
 carregarAlunos();
 </script>
 
