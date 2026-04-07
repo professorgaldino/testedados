@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências</title>
+<title>Registro de Ocorrências 32</title>
 
 <style>
   body {
@@ -41,17 +41,6 @@
     border-radius: 6px;
     border: 1px solid #dcdcdc;
     font-size: 14px;
-    transition: all 0.2s ease;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
-  }
-
-  textarea {
-    resize: none;
   }
 
   button {
@@ -65,16 +54,11 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
   }
 
-  button:hover {
-    background: #0056b3;
-    transform: translateY(-1px);
-  }
-
-  button:active {
-    transform: scale(0.98);
+  button:disabled {
+    background: #999;
+    cursor: not-allowed;
   }
 </style>
 </head>
@@ -86,7 +70,7 @@
   
   <label>Selecione a Sala</label>
   <select id="salaSelect">
-    <option value="">Escolha uma sala</option>
+    <option>Carregando salas...</option>
   </select>
   
   <label>Selecione o Aluno</label>
@@ -115,33 +99,64 @@
   <label>Ação Tomada</label>
   <textarea id="acao" rows="2"></textarea>
   
-  <button onclick="enviar()">Enviar Ocorrência</button>
+  <button id="btnEnviar" onclick="enviar()">Enviar Ocorrência</button>
 </div>
 
 <script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxNbK4Sbvfz-wWb-w_THQw-B9Kfd_m-Lo6T71rvNAcUyflZe4C-9BJjGt45LPkltGXN/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxPTOr4djsiUFeBFcfj22W27BoUvboI8MHOMbprTSbyWKQTlKRvUBfUI11t7HfQ_BP7/exec";
 const ALUNOS_URL = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
 
+const CACHE_KEY = "alunos_cache";
+const CACHE_TIME = 10 * 60 * 1000; // 10 min
+
 let alunosExternos = [];
+let enviando = false;
 
 const salaSelect = document.getElementById("salaSelect");
 const alunoSelect = document.getElementById("alunoSelect");
+const botao = document.getElementById("btnEnviar");
 
-// carregar alunos
-fetch(ALUNOS_URL)
-  .then(res => res.json())
-  .then(data => {
-    alunosExternos = data;
+// 🚀 CARREGAMENTO COM CACHE
+function carregarAlunos() {
 
-    const salas = [...new Set(alunosExternos.map(a => a.sala).filter(Boolean))].sort();
+  const cache = localStorage.getItem(CACHE_KEY);
+  const cacheTime = localStorage.getItem(CACHE_KEY + "_time");
 
-    salas.forEach(sala => {
-      const opt = document.createElement("option");
-      opt.value = sala;
-      opt.textContent = sala;
-      salaSelect.appendChild(opt);
+  if (cache && cacheTime && (Date.now() - cacheTime < CACHE_TIME)) {
+    alunosExternos = JSON.parse(cache);
+    montarSalas();
+    return;
+  }
+
+  fetch(ALUNOS_URL)
+    .then(res => res.json())
+    .then(data => {
+
+      alunosExternos = data;
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(CACHE_KEY + "_time", Date.now());
+
+      montarSalas();
+    })
+    .catch(() => {
+      salaSelect.innerHTML = '<option>Erro ao carregar salas</option>';
     });
+}
+
+// montar salas
+function montarSalas() {
+  const salas = [...new Set(alunosExternos.map(a => a.sala).filter(Boolean))].sort();
+
+  salaSelect.innerHTML = '<option value="">Escolha uma sala</option>';
+
+  salas.forEach(sala => {
+    const opt = document.createElement("option");
+    opt.value = sala;
+    opt.textContent = sala;
+    salaSelect.appendChild(opt);
   });
+}
 
 // filtrar alunos
 salaSelect.addEventListener("change", function(){
@@ -172,8 +187,11 @@ alunoSelect.addEventListener("change", function(){
   document.getElementById("ra").value = selected.value || "";
 });
 
-// enviar
+// envio
 function enviar() {
+
+  if (enviando) return;
+
   const sala = salaSelect.value;
   const ra = document.getElementById("ra").value;
   const tutor = document.getElementById("tutor").value;
@@ -189,10 +207,13 @@ function enviar() {
     return;
   }
 
+  enviando = true;
+  botao.disabled = true;
+  botao.innerText = "Enviando...";
+
   const [ano, mes, dia] = dataFato.split("-");
   const dataFormatada = `${dia}/${mes}/${ano}`;
 
-  // 🔥 ENVIO SEM CORS (FUNCIONA NO GITHUB)
   const formData = new URLSearchParams({
     sala,
     ra,
@@ -212,20 +233,37 @@ function enviar() {
   .then(res => res.json())
   .then(data => {
 
-    if(data.status !== "ok"){
-      throw new Error(data.mensagem || "Erro no servidor");
+    if (data.status === "duplicado") {
+      alert("⚠️ Essa ocorrência já foi registrada anteriormente.");
+      return;
     }
 
-    window.open(data.whatsapp, "_blank");
-    alert("Ocorrência registrada com sucesso!");
+    if (data.status !== "ok") {
+      throw new Error("Erro no servidor");
+    }
 
-    location.reload();
+    alert("✅ Ocorrência registrada no sistema com sucesso!");
+
+    setTimeout(() => {
+      alert("📲 Agora você será direcionado para o WhatsApp.");
+      window.open(data.whatsapp, "_blank");
+
+      setTimeout(() => location.reload(), 1000);
+    }, 500);
+
   })
   .catch(err => {
     alert("Erro ao enviar: " + err.message);
-    console.error(err);
+  })
+  .finally(() => {
+    enviando = false;
+    botao.disabled = false;
+    botao.innerText = "Enviar Ocorrência";
   });
 }
+
+// iniciar
+carregarAlunos();
 </script>
 
 </body>
