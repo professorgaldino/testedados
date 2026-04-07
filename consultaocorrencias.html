@@ -5,29 +5,11 @@
   <title>Consulta de Ocorrências</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f6f8fb; padding: 30px; color: #1f2937; }
+    h1 { text-align: center; font-weight: 600; margin-bottom: 30px; }
 
-    body {
-      background: #f6f8fb;
-      padding: 30px;
-      color: #1f2937;
-    }
-
-    h1 {
-      text-align: center;
-      font-weight: 600;
-      margin-bottom: 30px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-    }
+    .container { max-width: 1200px; margin: auto; }
 
     .card {
       background: #fff;
@@ -56,12 +38,6 @@
       border-radius: 8px;
       border: 1px solid #ddd;
       margin-top: 4px;
-      transition: 0.2s;
-    }
-
-    .filtros input:focus {
-      border-color: #6366f1;
-      outline: none;
     }
 
     button {
@@ -72,12 +48,7 @@
       color: white;
       font-weight: 500;
       cursor: pointer;
-      transition: 0.2s;
       margin-top: 18px;
-    }
-
-    button:hover {
-      background: #4f46e5;
     }
 
     table {
@@ -88,62 +59,26 @@
       font-size: 13px;
     }
 
-    th, td {
-      padding: 10px;
-      text-align: left;
-    }
+    th, td { padding: 10px; text-align: left; }
+    th { background: #f1f5f9; font-weight: 600; font-size: 12px; }
 
-    th {
-      background: #f1f5f9;
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    tr {
-      border-bottom: 1px solid #eee;
-    }
-
-    tr:hover {
-      background: #f9fafb;
-    }
+    tr { border-bottom: 1px solid #eee; }
+    tr:hover { background: #f9fafb; }
 
     .loading, .error, .total {
       text-align: center;
       margin-top: 10px;
     }
 
-    .loading {
-      font-weight: 500;
-      color: #6b7280;
-    }
-
-    .error {
-      color: #ef4444;
-    }
-
-    .total {
-      font-weight: 600;
-      color: #111827;
-    }
-
-    @media (max-width: 768px) {
-      .filtros {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      button {
-        width: 100%;
-      }
-    }
+    .loading { color: #6b7280; }
+    .error { color: #ef4444; }
+    .total { font-weight: 600; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Consulta de Ocorrências 22</h1>
+  <h1>Consulta de Ocorrências 23</h1>
 
   <div class="card">
     <div class="filtros">
@@ -191,6 +126,7 @@
 
 <script>
   const urlWebApp = "https://script.google.com/macros/s/AKfycbx7qTP4vZCFmRfoqw0es7TGEt411HLAAxRmV_GDxKcUP9iOJ0ua5Xd8A39lJkHd0dZ7/exec";
+
   let todasOcorrencias = [];
   const tabela = document.getElementById("tabelaOcorrencias");
   const tbody = tabela.querySelector("tbody");
@@ -198,21 +134,11 @@
   const loadingDiv = document.getElementById("loading");
   const totalDiv = document.getElementById("totalOcorrencias");
 
-  function formatarData(isoString) {
-    if (!isoString) return "";
-    const d = new Date(isoString);
-    const dia = String(d.getDate()).padStart(2, "0");
-    const mes = String(d.getMonth() + 1).padStart(2, "0");
-    const ano = d.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  function formatarHora(isoString) {
-    if (!isoString) return "";
-    const d = new Date(isoString);
-    const horas = String(d.getHours()).padStart(2, "0");
-    const minutos = String(d.getMinutes()).padStart(2, "0");
-    return `${horas}:${minutos}`;
+  // 🔥 converte data BR corretamente
+  function converterDataBR(dataBR) {
+    if (!dataBR) return null;
+    const [dia, mes, ano] = dataBR.split("/");
+    return new Date(ano, mes - 1, dia);
   }
 
   function mostrarOcorrencias(dados) {
@@ -237,9 +163,13 @@
 
     const filtradas = todasOcorrencias.filter(o => {
       let ok = true;
+
+      const dataFato = converterDataBR(o["Data do Fato"]);
+
       if (sala) ok = ok && o.Sala && o.Sala.toUpperCase() === sala;
-      if (dataInicio) ok = ok && o["Data do Fato"] && new Date(o["Data do Fato"]) >= new Date(dataInicio);
-      if (dataFim) ok = ok && o["Data do Fato"] && new Date(o["Data do Fato"]) <= new Date(dataFim);
+      if (dataInicio) ok = ok && dataFato && dataFato >= new Date(dataInicio);
+      if (dataFim) ok = ok && dataFato && dataFato <= new Date(dataFim);
+
       return ok;
     });
 
@@ -252,8 +182,8 @@
     filtradas.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${formatarData(o["Data Registro"])}</td>
-        <td>${formatarHora(o["Hora Registro"])}</td>
+        <td>${o["Data Registro"] || ""}</td>
+        <td>${o["Hora Registro"] || ""}</td>
         <td>${o.ra || ""}</td>
         <td>${o.nome || ""}</td>
         <td>${o.Sala || ""}</td>
@@ -261,8 +191,8 @@
         <td>${o.Professor || ""}</td>
         <td>${o["Descrição"] || ""}</td>
         <td>${o["Ação Tomada"] || ""}</td>
-        <td>${formatarData(o["Data do Fato"])}</td>
-        <td>${formatarHora(o["Hora do Fato"])}</td>
+        <td>${o["Data do Fato"] || ""}</td>
+        <td>${o["Hora do Fato"] || ""}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -270,14 +200,19 @@
     tabela.style.display = filtradas.length ? "table" : "none";
   }
 
-  function carregarOcorrencias() {
-    const script = document.createElement("script");
-    script.src = urlWebApp + "?action=consultar&callback=mostrarOcorrencias";
-    script.onerror = () => {
+  // 🚀 NOVO carregamento com fetch
+  async function carregarOcorrencias() {
+    try {
+      const response = await fetch(urlWebApp + "?action=consultar");
+      const dados = await response.json();
+
+      mostrarOcorrencias(dados);
+
+    } catch (erro) {
+      console.error(erro);
       loadingDiv.style.display = "none";
       errorDiv.textContent = "Erro ao carregar ocorrências.";
-    };
-    document.body.appendChild(script);
+    }
   }
 
   carregarOcorrencias();
