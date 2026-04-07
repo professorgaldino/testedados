@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     body { background: #f6f8fb; padding: 30px; color: #1f2937; }
-    h1 { text-align: center; font-weight: 600; margin-bottom: 30px; }
+    h1 { text-align: center; margin-bottom: 30px; }
 
     .container { max-width: 1200px; margin: auto; }
 
@@ -24,31 +24,21 @@
       flex-wrap: wrap;
       gap: 10px;
       justify-content: center;
-      align-items: center;
-    }
-
-    .filtros label {
-      font-size: 14px;
-      display: flex;
-      flex-direction: column;
     }
 
     .filtros input {
-      padding: 8px 10px;
+      padding: 8px;
       border-radius: 8px;
       border: 1px solid #ddd;
-      margin-top: 4px;
     }
 
     button {
-      padding: 10px 18px;
+      padding: 10px 15px;
       border: none;
       border-radius: 8px;
       background: #6366f1;
       color: white;
-      font-weight: 500;
       cursor: pointer;
-      margin-top: 18px;
     }
 
     table {
@@ -59,163 +49,185 @@
       font-size: 13px;
     }
 
-    th, td { padding: 10px; text-align: left; }
-    th { background: #f1f5f9; font-weight: 600; font-size: 12px; }
-
+    th, td { padding: 10px; }
+    th { background: #f1f5f9; }
     tr { border-bottom: 1px solid #eee; }
-    tr:hover { background: #f9fafb; }
 
     .loading, .error, .total {
       text-align: center;
       margin-top: 10px;
     }
 
-    .loading { color: #6b7280; }
-    .error { color: #ef4444; }
-    .total { font-weight: 600; }
+    .paginacao {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .paginacao button {
+      margin: 5px;
+      background: #e5e7eb;
+      color: #111;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Consulta de Ocorrências 26</h1>
+  <h1>Consulta de Ocorrências 🚀</h1>
 
   <div class="card">
     <div class="filtros">
-      <label>Sala
-        <input type="text" id="filtroSala" placeholder="Ex: 6A">
-      </label>
-
-      <label>Data Inicial
-        <input type="date" id="filtroDataInicial">
-      </label>
-
-      <label>Data Final
-        <input type="date" id="filtroDataFinal">
-      </label>
-
+      <input type="text" id="filtroSala" placeholder="Sala (ex: 9A)">
+      <input type="text" id="filtroNome" placeholder="Nome do aluno">
+      <input type="date" id="filtroDataInicial">
+      <input type="date" id="filtroDataFinal">
       <button onclick="aplicarFiltro()">Filtrar</button>
     </div>
   </div>
 
   <div class="card">
-    <div class="loading" id="loading">Carregando ocorrências...</div>
+    <div class="loading" id="loading">Carregando...</div>
     <div class="error" id="error"></div>
-    <div class="total" id="totalOcorrencias"></div>
+    <div class="total" id="total"></div>
 
-    <table id="tabelaOcorrencias">
+    <table id="tabela">
       <thead>
         <tr>
-          <th>Data Registro</th>
-          <th>Hora Registro</th>
+          <th>Data</th>
+          <th>Hora</th>
           <th>RA</th>
           <th>Nome</th>
           <th>Sala</th>
           <th>Tutor</th>
           <th>Professor</th>
           <th>Descrição</th>
-          <th>Ação Tomada</th>
-          <th>Data do Fato</th>
-          <th>Hora do Fato</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+
+    <div class="paginacao">
+      <button onclick="anterior()">⬅</button>
+      <span id="paginaInfo"></span>
+      <button onclick="proxima()">➡</button>
+    </div>
   </div>
 </div>
 
 <script>
-  const urlWebApp = "https://script.google.com/macros/s/AKfycbyA6NElCuqhdH3yfiQExmxGbVO7gYbrFLMw8nv2itt6BcILN6Q7gONiuzhtzyR_Vz8w/exec";
+const url = "https://script.google.com/macros/s/AKfycbyA6NElCuqhdH3yfiQExmxGbVO7gYbrFLMw8nv2itt6BcILN6Q7gONiuzhtzyR_Vz8w/exec?action=consultar";
 
-  let todasOcorrencias = [];
-  const tabela = document.getElementById("tabelaOcorrencias");
-  const tbody = tabela.querySelector("tbody");
-  const errorDiv = document.getElementById("error");
-  const loadingDiv = document.getElementById("loading");
-  const totalDiv = document.getElementById("totalOcorrencias");
+let dados = [];
+let filtrados = [];
 
-  // 🔥 converte data BR corretamente
-  function converterDataBR(dataBR) {
-    if (!dataBR) return null;
-    const [dia, mes, ano] = dataBR.split("/");
+let pagina = 1;
+const porPagina = 30;
+
+const tbody = document.querySelector("tbody");
+const tabela = document.getElementById("tabela");
+
+function parseData(d) {
+  if (!d) return null;
+
+  if (typeof d === "string" && d.includes("T")) {
+    return new Date(d);
+  }
+
+  if (typeof d === "string" && d.includes("/")) {
+    const [dia, mes, ano] = d.split("/");
     return new Date(ano, mes - 1, dia);
   }
 
-  function mostrarOcorrencias(dados) {
-    loadingDiv.style.display = "none";
+  return null;
+}
 
-    if (!Array.isArray(dados) || dados.length === 0) {
-      errorDiv.textContent = "Nenhuma ocorrência encontrada.";
-      return;
-    }
+function render() {
+  tbody.innerHTML = "";
 
-    todasOcorrencias = dados;
+  const inicio = (pagina - 1) * porPagina;
+  const paginaDados = filtrados.slice(inicio, inicio + porPagina);
+
+  const frag = document.createDocumentFragment();
+
+  paginaDados.forEach(o => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${o["Data Registro"] || ""}</td>
+      <td>${o["Hora Registro"] || ""}</td>
+      <td>${o.ra || ""}</td>
+      <td>${o.nome || ""}</td>
+      <td>${o.Sala || ""}</td>
+      <td>${o.Tutor || ""}</td>
+      <td>${o.Professor || ""}</td>
+      <td>${o["Descrição"] || ""}</td>
+    `;
+
+    frag.appendChild(tr);
+  });
+
+  tbody.appendChild(frag);
+  tabela.style.display = filtrados.length ? "table" : "none";
+
+  document.getElementById("paginaInfo").textContent =
+    `Página ${pagina} de ${Math.ceil(filtrados.length / porPagina)}`;
+}
+
+function aplicarFiltro() {
+  const sala = document.getElementById("filtroSala").value.trim().toUpperCase();
+  const nome = document.getElementById("filtroNome").value.toLowerCase();
+  const dataI = document.getElementById("filtroDataInicial").value;
+  const dataF = document.getElementById("filtroDataFinal").value;
+
+  filtrados = dados.filter(o => {
+    let ok = true;
+
+    const dataFato = parseData(o["Data do Fato"]);
+
+    if (sala) ok = ok && o.Sala && o.Sala.trim().toUpperCase().includes(sala);
+    if (nome) ok = ok && o.nome && o.nome.toLowerCase().includes(nome);
+
+    if (dataI && dataFato) ok = ok && dataFato >= new Date(dataI);
+    if (dataF && dataFato) ok = ok && dataFato <= new Date(dataF);
+
+    return ok;
+  });
+
+  pagina = 1;
+  document.getElementById("total").textContent = `Total: ${filtrados.length}`;
+  render();
+}
+
+function anterior() {
+  if (pagina > 1) {
+    pagina--;
+    render();
+  }
+}
+
+function proxima() {
+  if (pagina < Math.ceil(filtrados.length / porPagina)) {
+    pagina++;
+    render();
+  }
+}
+
+async function carregar() {
+  try {
+    const res = await fetch(url);
+    dados = await res.json();
+    filtrados = dados;
+
+    document.getElementById("loading").style.display = "none";
     aplicarFiltro();
+
+  } catch (e) {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("error").textContent = "Erro ao carregar.";
   }
+}
 
-  function aplicarFiltro() {
-    const sala = document.getElementById("filtroSala").value.trim().toUpperCase();
-    const dataInicio = document.getElementById("filtroDataInicial").value;
-    const dataFim = document.getElementById("filtroDataFinal").value;
-
-    tbody.innerHTML = "";
-    errorDiv.textContent = "";
-
-    const filtradas = todasOcorrencias.filter(o => {
-      let ok = true;
-
-      const dataFato = converterDataBR(o["Data do Fato"]);
-
-      if (sala) ok = ok && o.Sala && o.Sala.toUpperCase() === sala;
-      if (dataInicio) ok = ok && dataFato && dataFato >= new Date(dataInicio);
-      if (dataFim) ok = ok && dataFato && dataFato <= new Date(dataFim);
-
-      return ok;
-    });
-
-    if (filtradas.length === 0) {
-      errorDiv.textContent = "Nenhuma ocorrência encontrada para os filtros.";
-    }
-
-    totalDiv.textContent = `Total de ocorrências: ${filtradas.length}`;
-
-    filtradas.forEach(o => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${o["Data Registro"] || ""}</td>
-        <td>${o["Hora Registro"] || ""}</td>
-        <td>${o.ra || ""}</td>
-        <td>${o.nome || ""}</td>
-        <td>${o.Sala || ""}</td>
-        <td>${o.Tutor || ""}</td>
-        <td>${o.Professor || ""}</td>
-        <td>${o["Descrição"] || ""}</td>
-        <td>${o["Ação Tomada"] || ""}</td>
-        <td>${o["Data do Fato"] || ""}</td>
-        <td>${o["Hora do Fato"] || ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    tabela.style.display = filtradas.length ? "table" : "none";
-  }
-
-  // 🚀 NOVO carregamento com fetch
-  async function carregarOcorrencias() {
-    try {
-      const response = await fetch(urlWebApp + "?action=consultar");
-      const dados = await response.json();
-
-      mostrarOcorrencias(dados);
-
-    } catch (erro) {
-      console.error(erro);
-      loadingDiv.style.display = "none";
-      errorDiv.textContent = "Erro ao carregar ocorrências.";
-    }
-  }
-
-  carregarOcorrencias();
+carregar();
 </script>
 
 </body>
