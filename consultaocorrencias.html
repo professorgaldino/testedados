@@ -74,11 +74,11 @@ tr { border-bottom:1px solid #eee; }
 
 <div class="container">
 
-<h1>Consulta de Ocorrências</h1>
+<h1>Consulta de Ocorrências 29</h1>
 
 <div class="card">
 <div class="filtros">
-<input type="text" id="sala" placeholder="Sala">
+<input type="text" id="sala" placeholder="Sala (ex: 9A)">
 <input type="text" id="nome" placeholder="Nome do aluno">
 <input type="date" id="dataI">
 <input type="date" id="dataF">
@@ -116,45 +116,39 @@ const url = "https://script.google.com/macros/s/AKfycbyA6NElCuqhdH3yfiQExmxGbVO7
 
 let dados = [];
 
-// 🔥 CONVERTE ISO → DATA BR
-function formatarDataISO(data) {
+// 🔥 FORMATAR DATA
+function formatarData(data) {
   if (!data) return "";
-
   const d = new Date(data);
   if (isNaN(d)) return data;
-
   return d.toLocaleDateString("pt-BR");
 }
 
-// 🔥 CONVERTE ISO → HORA
-function formatarHoraISO(data) {
+// 🔥 FORMATAR HORA
+function formatarHora(data) {
   if (!data) return "";
-
   const d = new Date(data);
   if (isNaN(d)) return data;
-
-  return d.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
 }
 
-// 🔥 PARA FILTRO
-function parseData(data) {
-  if (!data) return null;
+// 🔥 CONVERTER PARA DATE
+function toDate(valor) {
+  if (!valor) return null;
 
-  if (data.includes("T")) {
-    return new Date(data);
+  if (valor.includes("T")) {
+    return new Date(valor);
   }
 
-  if (data.includes("/")) {
-    const [d,m,a] = data.split("/");
+  if (valor.includes("/")) {
+    const [d,m,a] = valor.split("/");
     return new Date(a, m-1, d);
   }
 
   return null;
 }
 
+// 🔥 RENDER
 function render(lista) {
   const tbody = document.querySelector("tbody");
   tbody.innerHTML = "";
@@ -163,13 +157,13 @@ function render(lista) {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${formatarDataISO(o["Data Registro"])}</td>
-      <td>${formatarHoraISO(o["Hora Registro"])}</td>
+      <td>${formatarData(o["Data Registro"])}</td>
+      <td>${formatarHora(o["Hora Registro"])}</td>
       <td>${o.ra || ""}</td>
       <td>${o.nome || ""}</td>
       <td>${o.Sala || ""}</td>
       <td>${o.Professor || ""}</td>
-      <td>${formatarDataISO(o["Data do Fato"])}</td>
+      <td>${formatarData(o["Data do Fato"])}</td>
       <td>${o["Descrição"] || ""}</td>
     `;
 
@@ -179,35 +173,50 @@ function render(lista) {
   document.getElementById("tabela").style.display = lista.length ? "table" : "none";
 }
 
+// 🔥 FILTRO CORRIGIDO
 function filtrar() {
-  const sala = document.getElementById("sala").value.toUpperCase();
-  const nome = document.getElementById("nome").value.toLowerCase();
+  const sala = document.getElementById("sala").value.trim().toLowerCase();
+  const nome = document.getElementById("nome").value.trim().toLowerCase();
   const dataI = document.getElementById("dataI").value;
   const dataF = document.getElementById("dataF").value;
 
   const filtrados = dados.filter(o => {
-    let ok = true;
 
-    const data = parseData(o["Data do Fato"]);
+    // SALA
+    if (sala && (!o.Sala || !o.Sala.toLowerCase().includes(sala))) {
+      return false;
+    }
 
-    if (sala) ok = ok && o.Sala && o.Sala.toUpperCase().includes(sala);
-    if (nome) ok = ok && o.nome && o.nome.toLowerCase().includes(nome);
+    // NOME
+    if (nome && (!o.nome || !o.nome.toLowerCase().includes(nome))) {
+      return false;
+    }
 
-    if (dataI && data) ok = ok && data >= new Date(dataI);
-    if (dataF && data) ok = ok && data <= new Date(dataF);
+    // DATA
+    const dataFato = toDate(o["Data do Fato"]);
 
-    return ok;
+    if (dataI) {
+      if (!dataFato || dataFato < new Date(dataI)) return false;
+    }
+
+    if (dataF) {
+      if (!dataFato || dataFato > new Date(dataF)) return false;
+    }
+
+    return true;
   });
 
   render(filtrados);
 }
 
+// 🔥 CARREGAR
 async function carregar() {
   try {
     const res = await fetch(url);
     dados = await res.json();
 
     document.getElementById("loading").style.display = "none";
+
     render(dados);
 
   } catch (e) {
