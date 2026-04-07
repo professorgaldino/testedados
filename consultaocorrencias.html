@@ -1,186 +1,113 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Consulta de Ocorrências</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta de Ocorrências</title>
 
-  <!-- 🔥 ESSENCIAL PARA RESPONSIVO -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter'; }
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-    }
+body { background:#f6f8fb; padding:15px; }
 
-    body {
-      background: #f6f8fb;
-      padding: 15px;
-      color: #1f2937;
-    }
+.container { max-width:1200px; margin:auto; }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 20px;
-    }
+h1 { text-align:center; margin-bottom:20px; }
 
-    .container {
-      max-width: 1200px;
-      margin: auto;
-    }
+.card {
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      margin-bottom: 15px;
-    }
+.filtros {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;
+}
 
-    /* 🔥 FILTROS RESPONSIVOS */
-    .filtros {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-    }
+input {
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
 
-    .filtros input {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-    }
+button {
+  background:#6366f1;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:10px;
+  cursor:pointer;
+}
 
-    .filtros button {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #6366f1;
-      color: white;
-      cursor: pointer;
-      font-weight: 500;
-    }
+.table-container { overflow-x:auto; }
 
-    /* 🔥 TABELA RESPONSIVA */
-    .table-container {
-      overflow-x: auto;
-    }
+table {
+  width:100%;
+  min-width:800px;
+  border-collapse:collapse;
+  font-size:13px;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      min-width: 800px;
-    }
+th, td { padding:8px; }
 
-    th, td {
-      padding: 8px;
-      text-align: left;
-    }
+th { background:#f1f5f9; }
 
-    th {
-      background: #f1f5f9;
-      font-size: 12px;
-    }
+tr { border-bottom:1px solid #eee; }
 
-    tr {
-      border-bottom: 1px solid #eee;
-    }
+.loading, .error { text-align:center; margin-top:10px; }
 
-    tr:hover {
-      background: #f9fafb;
-    }
+.error { color:red; }
 
-    .loading, .error, .total {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .error {
-      color: red;
-    }
-
-    /* 🔥 PAGINAÇÃO */
-    .paginacao {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .paginacao button {
-      padding: 6px 10px;
-      margin: 3px;
-      border: none;
-      border-radius: 6px;
-      background: #e5e7eb;
-      cursor: pointer;
-    }
-
-    /* 📱 MOBILE */
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 16px;
-      }
-
-      table {
-        font-size: 11px;
-      }
-
-      th, td {
-        padding: 6px;
-      }
-    }
-  </style>
+@media(max-width:600px){
+  table { font-size:11px; }
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <h1>Consulta de Ocorrências 27</h1>
+<h1>Consulta de Ocorrências</h1>
 
-  <div class="card">
-    <div class="filtros">
-      <input type="text" id="filtroSala" placeholder="Sala (ex: 9A)">
-      <input type="text" id="filtroNome" placeholder="Nome do aluno">
-      <input type="date" id="filtroDataInicial">
-      <input type="date" id="filtroDataFinal">
-      <button onclick="aplicarFiltro()">Filtrar</button>
-    </div>
-  </div>
+<div class="card">
+<div class="filtros">
+<input type="text" id="sala" placeholder="Sala">
+<input type="text" id="nome" placeholder="Nome do aluno">
+<input type="date" id="dataI">
+<input type="date" id="dataF">
+<button onclick="filtrar()">Filtrar</button>
+</div>
+</div>
 
-  <div class="card">
-    <div class="loading" id="loading">Carregando...</div>
-    <div class="error" id="error"></div>
-    <div class="total" id="total"></div>
+<div class="card">
+<div id="loading">Carregando...</div>
+<div id="error" class="error"></div>
 
-    <div class="table-container">
-      <table id="tabela">
-        <thead>
-          <tr>
-            <th>Data Registro</th>
-            <th>Hora</th>
-            <th>RA</th>
-            <th>Nome</th>
-            <th>Sala</th>
-            <th>Professor</th>
-            <th>Data do Fato</th> <!-- 🔥 NOVO -->
-            <th>Descrição</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="paginacao">
-      <button onclick="anterior()">⬅</button>
-      <span id="paginaInfo"></span>
-      <button onclick="proxima()">➡</button>
-    </div>
-  </div>
+<div class="table-container">
+<table id="tabela" style="display:none;">
+<thead>
+<tr>
+<th>Data Registro</th>
+<th>Hora</th>
+<th>RA</th>
+<th>Nome</th>
+<th>Sala</th>
+<th>Professor</th>
+<th>Data do Fato</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 
 </div>
 
@@ -188,108 +115,104 @@
 const url = "https://script.google.com/macros/s/AKfycbyA6NElCuqhdH3yfiQExmxGbVO7gYbrFLMw8nv2itt6BcILN6Q7gONiuzhtzyR_Vz8w/exec?action=consultar";
 
 let dados = [];
-let filtrados = [];
 
-let pagina = 1;
-const porPagina = 20;
+// 🔥 CONVERTE ISO → DATA BR
+function formatarDataISO(data) {
+  if (!data) return "";
 
-const tbody = document.querySelector("tbody");
-const tabela = document.getElementById("tabela");
+  const d = new Date(data);
+  if (isNaN(d)) return data;
 
-function parseData(d) {
-  if (!d) return null;
+  return d.toLocaleDateString("pt-BR");
+}
 
-  if (d.includes("/")) {
-    const [dia, mes, ano] = d.split("/");
-    return new Date(ano, mes - 1, dia);
+// 🔥 CONVERTE ISO → HORA
+function formatarHoraISO(data) {
+  if (!data) return "";
+
+  const d = new Date(data);
+  if (isNaN(d)) return data;
+
+  return d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+// 🔥 PARA FILTRO
+function parseData(data) {
+  if (!data) return null;
+
+  if (data.includes("T")) {
+    return new Date(data);
+  }
+
+  if (data.includes("/")) {
+    const [d,m,a] = data.split("/");
+    return new Date(a, m-1, d);
   }
 
   return null;
 }
 
-function render() {
+function render(lista) {
+  const tbody = document.querySelector("tbody");
   tbody.innerHTML = "";
 
-  const inicio = (pagina - 1) * porPagina;
-  const paginaDados = filtrados.slice(inicio, inicio + porPagina);
-
-  const frag = document.createDocumentFragment();
-
-  paginaDados.forEach(o => {
+  lista.forEach(o => {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${o["Data Registro"] || ""}</td>
-      <td>${o["Hora Registro"] || ""}</td>
+      <td>${formatarDataISO(o["Data Registro"])}</td>
+      <td>${formatarHoraISO(o["Hora Registro"])}</td>
       <td>${o.ra || ""}</td>
       <td>${o.nome || ""}</td>
       <td>${o.Sala || ""}</td>
       <td>${o.Professor || ""}</td>
-      <td>${o["Data do Fato"] || ""}</td>
+      <td>${formatarDataISO(o["Data do Fato"])}</td>
       <td>${o["Descrição"] || ""}</td>
     `;
 
-    frag.appendChild(tr);
+    tbody.appendChild(tr);
   });
 
-  tbody.appendChild(frag);
-  tabela.style.display = filtrados.length ? "table" : "none";
-
-  document.getElementById("paginaInfo").textContent =
-    `Página ${pagina} de ${Math.ceil(filtrados.length / porPagina)}`;
+  document.getElementById("tabela").style.display = lista.length ? "table" : "none";
 }
 
-function aplicarFiltro() {
-  const sala = document.getElementById("filtroSala").value.trim().toUpperCase();
-  const nome = document.getElementById("filtroNome").value.toLowerCase();
-  const dataI = document.getElementById("filtroDataInicial").value;
-  const dataF = document.getElementById("filtroDataFinal").value;
+function filtrar() {
+  const sala = document.getElementById("sala").value.toUpperCase();
+  const nome = document.getElementById("nome").value.toLowerCase();
+  const dataI = document.getElementById("dataI").value;
+  const dataF = document.getElementById("dataF").value;
 
-  filtrados = dados.filter(o => {
+  const filtrados = dados.filter(o => {
     let ok = true;
 
-    const dataFato = parseData(o["Data do Fato"]);
+    const data = parseData(o["Data do Fato"]);
 
     if (sala) ok = ok && o.Sala && o.Sala.toUpperCase().includes(sala);
     if (nome) ok = ok && o.nome && o.nome.toLowerCase().includes(nome);
 
-    if (dataI && dataFato) ok = ok && dataFato >= new Date(dataI);
-    if (dataF && dataFato) ok = ok && dataFato <= new Date(dataF);
+    if (dataI && data) ok = ok && data >= new Date(dataI);
+    if (dataF && data) ok = ok && data <= new Date(dataF);
 
     return ok;
   });
 
-  pagina = 1;
-  document.getElementById("total").textContent = `Total: ${filtrados.length}`;
-  render();
-}
-
-function anterior() {
-  if (pagina > 1) {
-    pagina--;
-    render();
-  }
-}
-
-function proxima() {
-  if (pagina < Math.ceil(filtrados.length / porPagina)) {
-    pagina++;
-    render();
-  }
+  render(filtrados);
 }
 
 async function carregar() {
   try {
     const res = await fetch(url);
     dados = await res.json();
-    filtrados = dados;
 
     document.getElementById("loading").style.display = "none";
-    aplicarFiltro();
+    render(dados);
 
   } catch (e) {
     document.getElementById("loading").style.display = "none";
-    document.getElementById("error").textContent = "Erro ao carregar.";
+    document.getElementById("error").innerText = "Erro ao carregar";
   }
 }
 
