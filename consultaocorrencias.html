@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consulta de Ocorrências</title>
+<title>Consulta de Ocorrências 34</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -129,6 +129,7 @@ tr {
 <th>Nome</th>
 <th>Sala</th>
 <th>Professor</th>
+<th>Tutor</th>
 <th>Data do Fato</th>
 <th>Descrição</th>
 </tr>
@@ -214,6 +215,7 @@ function render(lista) {
       <td>${o.nome || ""}</td>
       <td>${o.Sala || ""}</td>
       <td>${o.Professor || ""}</td>
+      <td>${o.Tutor || ""}</td>
       <td>${formatarData(o["Data do Fato"])}</td>
       <td>${o["Descrição"] || ""}</td>
     `;
