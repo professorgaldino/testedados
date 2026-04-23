@@ -4,54 +4,131 @@
 <meta charset="UTF-8">
 <title>Editar Alunos 36</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-body { font-family: Arial; padding: 20px; }
-input, button { padding:10px; margin:5px 0; width:100%; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  padding: 30px;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 750px;
+  margin: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
 
 .lista {
-  border:1px solid #ccc;
-  max-height:200px;
-  overflow:auto;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
 .item {
-  padding:8px;
-  cursor:pointer;
-  border-bottom:1px solid #eee;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
 }
 
 .item:hover {
-  background:#f0f0f0;
+  background: #eef2ff;
 }
 
-.hidden { display:none; }
+.item.active {
+  background: #6366f1;
+  color: white;
+}
+
+.mensagem {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: none;
+  font-weight: 500;
+}
+
+.sucesso { background: #d1fae5; color: #065f46; }
+.erro { background: #fee2e2; color: #991b1b; }
+
+.hidden { display: none; }
 </style>
 </head>
 
 <body>
 
-<h2>Editar Aluno</h2>
+<div class="container">
+  <h2>✏️ Editar Alunos</h2>
 
-<input type="text" id="busca" placeholder="Digite nome ou RA">
-<button onclick="buscar()">Buscar</button>
+  <div class="search-box">
+    <input type="text" id="busca" placeholder="Digite nome ou RA">
+    <button class="btn-primary" onclick="buscar()">Buscar</button>
+  </div>
 
-<div id="lista" class="lista"></div>
+  <div id="lista" class="lista"></div>
 
-<hr>
+  <div id="mensagem" class="mensagem"></div>
 
-<div id="form" class="hidden">
+  <div id="form" class="hidden">
+    <input id="ra" placeholder="RA">
+    <input id="nome" placeholder="Nome">
+    <input id="nascimento" type="date">
+    <input id="foto" placeholder="Foto">
+    <input id="sala" placeholder="Sala">
+    <input id="tutor" placeholder="Tutor">
+    <input id="eletiva1" placeholder="Eletiva 1">
+    <input id="eletiva2" placeholder="Eletiva 2">
 
-<input id="ra">
-<input id="nome">
-<input id="nascimento" type="date">
-<input id="foto">
-<input id="sala">
-<input id="tutor">
-<input id="eletiva1">
-<input id="eletiva2">
-
-<button onclick="salvar()">Salvar</button>
-
+    <button class="btn-success" onclick="salvar()">💾 Salvar</button>
+  </div>
 </div>
 
 <script>
@@ -60,35 +137,42 @@ const url = "https://script.google.com/macros/s/AKfycbxMg4BYeW7hBpCdpmQleD3pllaV
 let alunoOriginal = null;
 
 function buscar() {
-  const valor = document.getElementById("busca").value;
+  const valor = busca.value.trim();
 
-  fetch(url + "?busca=" + valor)
+  lista.innerHTML = "🔄 Buscando...";
+
+  fetch(url + "?busca=" + encodeURIComponent(valor))
   .then(r => r.json())
-  .then(lista => {
-    const div = document.getElementById("lista");
-    div.innerHTML = "";
+  .then(dados => {
+    lista.innerHTML = "";
 
-    if (lista.length === 0) {
-      div.innerHTML = "Nenhum encontrado";
+    if (dados.length === 0) {
+      lista.innerHTML = "❌ Nenhum aluno encontrado";
       return;
     }
 
-    lista.forEach(a => {
-      const el = document.createElement("div");
-      el.className = "item";
-      el.innerText = a.nome + " (RA: " + a.ra + ")";
+    dados.forEach(a => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerText = a.nome + " (RA: " + a.ra + ")";
 
-      el.onclick = () => selecionar(a);
+      div.onclick = () => selecionar(a, div);
 
-      div.appendChild(el);
+      lista.appendChild(div);
     });
+  })
+  .catch(() => {
+    lista.innerHTML = "❌ Erro ao buscar";
   });
 }
 
-function selecionar(a) {
+function selecionar(a, elemento) {
   alunoOriginal = {...a};
 
-  document.getElementById("form").classList.remove("hidden");
+  document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
+  elemento.classList.add("active");
+
+  form.classList.remove("hidden");
 
   ra.value = a.ra;
   nome.value = a.nome;
@@ -114,7 +198,6 @@ function salvar() {
     eletiva2: eletiva2.value
   };
 
-  // 🔥 CONFIRMAÇÃO
   let confirmacao = "Confirme alterações:\n\n";
 
   for (let k in novo) {
@@ -125,16 +208,26 @@ function salvar() {
 
   if (!confirm(confirmacao)) return;
 
+  mensagem.style.display = "block";
+  mensagem.className = "mensagem";
+  mensagem.innerText = "⏳ Salvando...";
+
   fetch(url, {
-    method:"POST",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...novo,
       raOriginal: alunoOriginal.ra
     })
   })
   .then(() => {
-    alert("Salvo com sucesso");
+    mensagem.className = "mensagem sucesso";
+    mensagem.innerText = "✅ Salvo com sucesso!";
     buscar();
+  })
+  .catch(() => {
+    mensagem.className = "mensagem erro";
+    mensagem.innerText = "❌ Erro ao salvar!";
   });
 }
 </script>
