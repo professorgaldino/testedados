@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editar Alunos 36</title>
+<title>Editar Alunos 37</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -132,13 +132,14 @@ button {
 </div>
 
 <script>
-const url = "https://script.google.com/macros/s/AKfycbxMg4BYeW7hBpCdpmQleD3pllaVtAy64h6KAWHUJDC5ZVxAHrLkAE1CAjMQdJZS2Vwg8A/exec";
+const url = "https://script.google.com/macros/s/AKfycbzSj5jcX1N2Ri2KcHUzBDHsPjA9x7fyXZCNauhulIr4X0cxA-Brnbvwvq89GHkTcbbOaQ/exec";
 
 let alunoOriginal = null;
 
 function buscar() {
-  const valor = busca.value.trim();
+  const valor = document.getElementById("busca").value.trim();
 
+  const lista = document.getElementById("lista");
   lista.innerHTML = "🔄 Buscando...";
 
   fetch(url + "?busca=" + encodeURIComponent(valor))
@@ -146,7 +147,7 @@ function buscar() {
   .then(dados => {
     lista.innerHTML = "";
 
-    if (dados.length === 0) {
+    if (!dados || dados.length === 0) {
       lista.innerHTML = "❌ Nenhum aluno encontrado";
       return;
     }
@@ -172,30 +173,30 @@ function selecionar(a, elemento) {
   document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
   elemento.classList.add("active");
 
-  form.classList.remove("hidden");
+  document.getElementById("form").classList.remove("hidden");
 
-  ra.value = a.ra;
-  nome.value = a.nome;
-  nascimento.value = a.nascimento?.split("T")[0] || "";
-  foto.value = a.foto || "";
-  sala.value = a.sala || "";
-  tutor.value = a.tutor || "";
-  eletiva1.value = a.eletiva1 || "";
-  eletiva2.value = a.eletiva2 || "";
+  document.getElementById("ra").value = a.ra || "";
+  document.getElementById("nome").value = a.nome || "";
+  document.getElementById("nascimento").value = a.nascimento ? a.nascimento.split('T')[0] : "";
+  document.getElementById("foto").value = a.foto || "";
+  document.getElementById("sala").value = a.sala || "";
+  document.getElementById("tutor").value = a.tutor || "";
+  document.getElementById("eletiva1").value = a.eletiva1 || "";
+  document.getElementById("eletiva2").value = a.eletiva2 || "";
 }
 
 function salvar() {
   if (!alunoOriginal) return;
 
   const novo = {
-    ra: ra.value,
-    nome: nome.value,
-    nascimento: nascimento.value,
-    foto: foto.value,
-    sala: sala.value,
-    tutor: tutor.value,
-    eletiva1: eletiva1.value,
-    eletiva2: eletiva2.value
+    ra: document.getElementById("ra").value,
+    nome: document.getElementById("nome").value,
+    nascimento: document.getElementById("nascimento").value,
+    foto: document.getElementById("foto").value,
+    sala: document.getElementById("sala").value,
+    tutor: document.getElementById("tutor").value,
+    eletiva1: document.getElementById("eletiva1").value,
+    eletiva2: document.getElementById("eletiva2").value
   };
 
   let confirmacao = "Confirme alterações:\n\n";
@@ -208,9 +209,10 @@ function salvar() {
 
   if (!confirm(confirmacao)) return;
 
-  mensagem.style.display = "block";
-  mensagem.className = "mensagem";
-  mensagem.innerText = "⏳ Salvando...";
+  const msg = document.getElementById("mensagem");
+  msg.style.display = "block";
+  msg.className = "mensagem";
+  msg.innerText = "⏳ Salvando...";
 
   fetch(url, {
     method: "POST",
@@ -220,14 +222,24 @@ function salvar() {
       raOriginal: alunoOriginal.ra
     })
   })
-  .then(() => {
-    mensagem.className = "mensagem sucesso";
-    mensagem.innerText = "✅ Salvo com sucesso!";
+  .then(res => res.json())
+  .then(resp => {
+    console.log(resp);
+
+    if (!resp || resp.status !== "ok") {
+      throw new Error("Erro no servidor");
+    }
+
+    msg.className = "mensagem sucesso";
+    msg.innerText = "✅ Salvo com sucesso!";
+
     buscar();
   })
-  .catch(() => {
-    mensagem.className = "mensagem erro";
-    mensagem.innerText = "❌ Erro ao salvar!";
+  .catch(err => {
+    console.error(err);
+
+    msg.className = "mensagem erro";
+    msg.innerText = "❌ Erro ao salvar!";
   });
 }
 </script>
