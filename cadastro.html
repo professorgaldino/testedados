@@ -89,7 +89,6 @@ const btn = document.getElementById("btn");
 
 const URL = "https://script.google.com/macros/s/AKfycbz-lEHgUGtIGgnRcKu4mJ_i0w1D2NTVgT1n_p_id3hRKe5GC3GH-9AltgZiRHPqF6y4cg/exec";
 
-// 🔎 Verifica RA antes de cadastrar
 document.getElementById("ra").addEventListener("blur", async () => {
   const ra = document.getElementById("ra").value;
   if (!ra) return;
@@ -129,7 +128,6 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
-    // ✅ CORRIGIDO (sem header)
     const res = await fetch(URL, {
       method: "POST",
       body: JSON.stringify(data)
