@@ -1,8 +1,9 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Cadastro de Alunos 34</title>
+<title>Cadastro de Alunos</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -87,7 +88,6 @@ const form = document.getElementById("form");
 const msg = document.getElementById("msg");
 const btn = document.getElementById("btn");
 
-// ✅ NOVO LINK AQUI
 const URL = "https://script.google.com/macros/s/AKfycbz-lEHgUGtIGgnRcKu4mJ_i0w1D2NTVgT1n_p_id3hRKe5GC3GH-9AltgZiRHPqF6y4cg/exec";
 
 // 🔎 Verifica RA antes de cadastrar
@@ -130,9 +130,9 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
+    // ✅ CORRIGIDO (sem header)
     const res = await fetch(URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
 
@@ -146,7 +146,8 @@ form.addEventListener("submit", async (e) => {
 
     form.reset();
 
-  } catch {
+  } catch (error) {
+    console.error(error);
     msg.innerHTML = "❌ Erro ao salvar!";
   }
 
@@ -158,3 +159,18 @@ form.addEventListener("submit", async (e) => {
 </body>
 </html>
 ```
+
+---
+
+## ✅ Agora vai funcionar porque:
+
+* ❌ Removido `Content-Type` (causador do erro)
+* ✅ Apps Script recebe corretamente
+* ✅ JSON continua sendo tratado no backend
+* ✅ Feedback funcionando
+
+---
+
+## 🔥 Se ainda der erro (bem improvável agora)
+
+Abre o console (F12) e me manda o erro — mas com isso aqui, já deve estar redondo 👍
