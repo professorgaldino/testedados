@@ -1,117 +1,65 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Cadastro de Alunos</title>
+<meta charset="UTF-8">
+<title>Cadastro de Alunos 34</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-    body {
-      background: linear-gradient(135deg, #eef2ff, #f8fafc);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
+body {
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
 
-    .container {
-      background: #ffffff;
-      padding: 25px;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      transition: 0.3s;
-    }
+.container {
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
 
-    .container:hover {
-      transform: translateY(-2px);
-    }
+h2 { text-align: center; margin-bottom: 20px; }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-weight: 600;
-      color: #1f2937;
-    }
+form { display: flex; flex-direction: column; gap: 10px; }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
 
-    input {
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      transition: 0.2s;
-      font-size: 14px;
-    }
+button {
+  padding: 11px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
 
-    input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
-    }
+button[type="submit"] {
+  background: #6366f1;
+  color: white;
+}
 
-    button {
-      padding: 11px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-    }
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-    button[type="submit"] {
-      background: #6366f1;
-      color: white;
-    }
-
-    button[type="submit"]:hover {
-      background: #4f46e5;
-    }
-
-    .secondary {
-      background: #f3f4f6;
-      color: #374151;
-    }
-
-    .secondary:hover {
-      background: #e5e7eb;
-    }
-
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 5px;
-    }
-
-    .msg {
-      text-align: center;
-      margin-top: 15px;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 20px;
-      }
-    }
-  </style>
+.msg {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: 500;
+}
+</style>
 </head>
 
 <body>
@@ -129,51 +77,85 @@
     <input type="text" id="eletiva1" placeholder="Eletiva 1º semestre">
     <input type="text" id="eletiva2" placeholder="Eletiva 2º semestre">
 
-    <button type="submit">Cadastrar</button>
-
-    <div class="actions">
-      <button class="secondary" onclick="window.location.href='https://professorgaldino.github.io/villani/consulta.html'">Ir para Consulta</button>
-      <button class="secondary" onclick="window.location.href='https://professorgaldino.github.io/villani/editar.html'">Editar aluno</button>
-    </div>
+    <button type="submit" id="btn">Cadastrar</button>
   </form>
 
   <div class="msg" id="msg"></div>
 </div>
 
 <script>
-document.getElementById("form").addEventListener("submit", function(e) {
+const form = document.getElementById("form");
+const msg = document.getElementById("msg");
+const btn = document.getElementById("btn");
+
+// ✅ NOVO LINK AQUI
+const URL = "https://script.google.com/macros/s/AKfycbz-lEHgUGtIGgnRcKu4mJ_i0w1D2NTVgT1n_p_id3hRKe5GC3GH-9AltgZiRHPqF6y4cg/exec";
+
+// 🔎 Verifica RA antes de cadastrar
+document.getElementById("ra").addEventListener("blur", async () => {
+  const ra = document.getElementById("ra").value;
+  if (!ra) return;
+
+  msg.innerHTML = "🔍 Verificando RA...";
+
+  try {
+    const res = await fetch(URL + "?ra=" + ra);
+    const data = await res.json();
+
+    if (data.existe) {
+      msg.innerHTML = "⚠️ RA já cadastrado. Será atualizado.";
+    } else {
+      msg.innerHTML = "✅ RA disponível";
+    }
+  } catch {
+    msg.innerHTML = "";
+  }
+});
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const msg = document.getElementById("msg");
+  msg.innerHTML = "⏳ Salvando...";
+  btn.disabled = true;
+  btn.innerText = "Salvando...";
 
   const data = {
-    ra: document.getElementById("ra").value,
-    nome: document.getElementById("nome").value,
-    nascimento: document.getElementById("nascimento").value,
-    foto: document.getElementById("foto").value,
-    sala: document.getElementById("sala").value,
-    tutor: document.getElementById("tutor").value,
-    eletiva1: document.getElementById("eletiva1").value,
-    eletiva2: document.getElementById("eletiva2").value
+    ra: ra.value,
+    nome: nome.value,
+    nascimento: nascimento.value,
+    foto: foto.value,
+    sala: sala.value,
+    tutor: tutor.value,
+    eletiva1: eletiva1.value,
+    eletiva2: eletiva2.value
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbzL7iq8uYey256rwtQIGCyACgqH69NP83kUWsOFxn8vZos9LWZtFY7CWCFAdHBzF_2y9w/exec", {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
-  .then(() => {
-    msg.innerHTML = "✅ Aluno cadastrado com sucesso!";
-    document.getElementById("form").reset();
-  })
-  .catch(() => {
-    msg.innerHTML = "❌ Erro ao enviar!";
-  });
+  try {
+    const res = await fetch(URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const json = await res.json();
+
+    if (json.acao === "criado") {
+      msg.innerHTML = "✅ Aluno cadastrado!";
+    } else {
+      msg.innerHTML = "⚠️ Aluno atualizado!";
+    }
+
+    form.reset();
+
+  } catch {
+    msg.innerHTML = "❌ Erro ao salvar!";
+  }
+
+  btn.disabled = false;
+  btn.innerText = "Cadastrar";
 });
 </script>
 
 </body>
 </html>
+```
