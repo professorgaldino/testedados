@@ -2,193 +2,140 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editar Alunos 35</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Editar Alunos 36</title>
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+body { font-family: Arial; padding: 20px; }
+input, button { padding:10px; margin:5px 0; width:100%; }
 
-body {
-  background: linear-gradient(135deg,#eef2ff,#f8fafc);
-  padding:30px;
+.lista {
+  border:1px solid #ccc;
+  max-height:200px;
+  overflow:auto;
 }
 
-.container {
-  max-width:600px;
-  margin:auto;
-  background:#fff;
-  padding:25px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
-h2 { text-align:center; margin-bottom:20px; }
-
-.search-box { display:flex; gap:10px; margin-bottom:15px; }
-
-input {
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
-}
-
-button {
-  padding:10px;
-  border:none;
-  border-radius:8px;
+.item {
+  padding:8px;
   cursor:pointer;
+  border-bottom:1px solid #eee;
 }
 
-.btn-primary { background:#6366f1; color:#fff; }
-.btn-success { background:#10b981; color:#fff; }
-
-button:disabled { opacity:0.6; cursor:not-allowed; }
-
-.msg { margin-bottom:10px; text-align:center; font-weight:500; }
-
-.foto {
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  object-fit:cover;
-  margin-bottom:10px;
-  display:none;
+.item:hover {
+  background:#f0f0f0;
 }
+
+.hidden { display:none; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h2>✏️ Editar Alunos</h2>
+<h2>Editar Aluno</h2>
 
-  <div class="search-box">
-    <input type="text" id="busca" placeholder="Digite RA ou Nome">
-    <button class="btn-primary" onclick="buscar()">Buscar</button>
-  </div>
+<input type="text" id="busca" placeholder="Digite nome ou RA">
+<button onclick="buscar()">Buscar</button>
 
-  <div id="msg" class="msg"></div>
+<div id="lista" class="lista"></div>
 
-  <img id="foto" class="foto">
+<hr>
 
-  <input type="text" id="ra" disabled placeholder="RA">
-  <input type="text" id="nome" placeholder="Nome">
-  <input type="date" id="nascimento">
-  <input type="text" id="fotoInput" placeholder="Link ou ID da foto">
-  <input type="text" id="sala" placeholder="Sala">
-  <input type="text" id="tutor" placeholder="Tutor">
-  <input type="text" id="eletiva1" placeholder="Eletiva 1">
-  <input type="text" id="eletiva2" placeholder="Eletiva 2">
+<div id="form" class="hidden">
 
-  <button id="btnSalvar" class="btn-success" onclick="salvar()" disabled>Salvar</button>
+<input id="ra">
+<input id="nome">
+<input id="nascimento" type="date">
+<input id="foto">
+<input id="sala">
+<input id="tutor">
+<input id="eletiva1">
+<input id="eletiva2">
+
+<button onclick="salvar()">Salvar</button>
+
 </div>
 
 <script>
-const URL = "https://script.google.com/macros/s/AKfycbzmxwz6TBeUWlLBx839faFZXe4719HBhISmiamndYZv1uX9ckkKQbqxvDKqfGzyXqQrAg/exec";
+const url = "https://script.google.com/macros/s/AKfycbxMg4BYeW7hBpCdpmQleD3pllaVtAy64h6KAWHUJDC5ZVxAHrLkAE1CAjMQdJZS2Vwg8A/exec";
 
-let alunoAtual = null;
+let alunoOriginal = null;
 
-const msg = document.getElementById("msg");
-const btn = document.getElementById("btnSalvar");
+function buscar() {
+  const valor = document.getElementById("busca").value;
 
-function montarFoto(valor){
-  if(!valor) return null;
-  valor = valor.trim();
+  fetch(url + "?busca=" + valor)
+  .then(r => r.json())
+  .then(lista => {
+    const div = document.getElementById("lista");
+    div.innerHTML = "";
 
-  if(valor.includes("http")) return valor;
-
-  return "https://lh3.googleusercontent.com/d/" + valor;
-}
-
-async function buscar(){
-  const valor = document.getElementById("busca").value.trim();
-  if(!valor){
-    msg.innerHTML = "⚠️ Digite algo para buscar";
-    return;
-  }
-
-  msg.innerHTML = "⏳ Buscando...";
-  btn.disabled = true;
-
-  try{
-    const res = await fetch(URL);
-    const dados = await res.json();
-
-    alunoAtual = dados.find(a =>
-      (a.ra+"").includes(valor) ||
-      (a.nome || "").toLowerCase().includes(valor.toLowerCase())
-    );
-
-    if(!alunoAtual){
-      msg.innerHTML = "❌ Nenhum aluno encontrado";
+    if (lista.length === 0) {
+      div.innerHTML = "Nenhum encontrado";
       return;
     }
 
-    msg.innerHTML = "✅ Aluno encontrado";
+    lista.forEach(a => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerText = a.nome + " (RA: " + a.ra + ")";
 
-    ra.value = alunoAtual.ra;
-    nome.value = alunoAtual.nome || "";
-    nascimento.value = alunoAtual.nascimento ? alunoAtual.nascimento.split("T")[0] : "";
-    fotoInput.value = alunoAtual.foto || "";
-    sala.value = alunoAtual.sala || "";
-    tutor.value = alunoAtual.tutor || "";
-    eletiva1.value = alunoAtual.eletiva1 || "";
-    eletiva2.value = alunoAtual.eletiva2 || "";
+      el.onclick = () => selecionar(a);
 
-    const src = montarFoto(alunoAtual.foto);
-    if(src){
-      foto.src = src;
-      foto.style.display = "block";
-    } else {
-      foto.style.display = "none";
-    }
-
-    btn.disabled = false;
-
-  }catch(e){
-    msg.innerHTML = "❌ Erro ao buscar";
-  }
+      div.appendChild(el);
+    });
+  });
 }
 
-async function salvar(){
-  if(!alunoAtual){
-    msg.innerHTML = "❌ Busque um aluno primeiro";
-    return;
-  }
+function selecionar(a) {
+  alunoOriginal = {...a};
 
-  msg.innerHTML = "⏳ Salvando...";
-  btn.disabled = true;
+  document.getElementById("form").classList.remove("hidden");
 
-  const data = {
+  ra.value = a.ra;
+  nome.value = a.nome;
+  nascimento.value = a.nascimento?.split("T")[0] || "";
+  foto.value = a.foto || "";
+  sala.value = a.sala || "";
+  tutor.value = a.tutor || "";
+  eletiva1.value = a.eletiva1 || "";
+  eletiva2.value = a.eletiva2 || "";
+}
+
+function salvar() {
+  if (!alunoOriginal) return;
+
+  const novo = {
     ra: ra.value,
     nome: nome.value,
     nascimento: nascimento.value,
-    foto: fotoInput.value,
+    foto: foto.value,
     sala: sala.value,
     tutor: tutor.value,
     eletiva1: eletiva1.value,
     eletiva2: eletiva2.value
   };
 
-  try{
-    const res = await fetch(URL,{
-      method:"POST",
-      body: JSON.stringify(data)
-    });
+  // 🔥 CONFIRMAÇÃO
+  let confirmacao = "Confirme alterações:\n\n";
 
-    const json = await res.json();
-
-    msg.innerHTML = json.acao === "atualizado"
-      ? "✅ Alterações salvas!"
-      : "⚠️ Registro criado";
-
-  }catch(e){
-    msg.innerHTML = "❌ Erro ao salvar";
+  for (let k in novo) {
+    if (novo[k] != alunoOriginal[k]) {
+      confirmacao += k + ": " + alunoOriginal[k] + " → " + novo[k] + "\n";
+    }
   }
 
-  btn.disabled = false;
+  if (!confirm(confirmacao)) return;
+
+  fetch(url, {
+    method:"POST",
+    body: JSON.stringify({
+      ...novo,
+      raOriginal: alunoOriginal.ra
+    })
+  })
+  .then(() => {
+    alert("Salvo com sucesso");
+    buscar();
+  });
 }
 </script>
 
