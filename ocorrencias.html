@@ -151,7 +151,6 @@ function montarSalas() {
   });
 }
 
-// FILTRO
 salaSelect.addEventListener("change", function(){
   const selectedSala = this.value;
   alunoSelect.innerHTML = '<option value="">Escolha um aluno</option>';
@@ -171,14 +170,15 @@ salaSelect.addEventListener("change", function(){
   document.getElementById("ra").value = "";
 });
 
-// PREENCHIMENTO
 alunoSelect.addEventListener("change", function(){
   const selected = this.options[this.selectedIndex];
   document.getElementById("tutor").value = selected.dataset.tutor || "";
   document.getElementById("ra").value = selected.value || "";
 });
 
-// ENVIO
+// ============================
+// ENVIO (AJUSTADO WHATSAPP)
+// ============================
 function enviar() {
 
   if (enviando) return;
@@ -202,7 +202,6 @@ function enviar() {
   botao.disabled = true;
   botao.innerText = "Enviando...";
 
-  // 🔥 Abre a aba do WhatsApp ANTES para não ser bloqueada
   const abaWhats = window.open("", "_blank");
 
   const [ano, mes, dia] = dataFato.split("-");
@@ -223,6 +222,7 @@ function enviar() {
   fetch(WEBAPP_URL + "?action=registrar&" + formData.toString())
   .then(res => res.json())
   .then(data => {
+
     if (data.status === "duplicado") {
       alert("⚠️ Essa ocorrência já foi registrada anteriormente.");
       abaWhats.close();
@@ -234,12 +234,38 @@ function enviar() {
       throw new Error("Erro no servidor");
     }
 
-    alert("✅ Ocorrência registrada no sistema com sucesso!");
+    alert("✅ Ocorrência registrada com sucesso!");
 
     setTimeout(() => {
-      alert("📲 Redirecionando para o WhatsApp...");
-      abaWhats.location.href = data.whatsapp;
+
+      alert("📲 Abrindo WhatsApp...");
+
+      const link = data.whatsapp;
+
+      const match = link.match(/wa\.me\/(\d+)\?text=(.*)/);
+
+      if (match) {
+
+        const phone = match[1];
+        const text = match[2];
+
+        const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
+        const webUrl = link;
+
+        // tenta abrir app
+        abaWhats.location.href = appUrl;
+
+        // fallback
+        setTimeout(() => {
+          abaWhats.location.href = webUrl;
+        }, 1200);
+
+      } else {
+        abaWhats.location.href = link;
+      }
+
       setTimeout(() => location.reload(), 1000);
+
     }, 500);
 
   })
@@ -254,7 +280,6 @@ function enviar() {
   });
 }
 
-// INICIAR
 carregarAlunos();
 </script>
 
