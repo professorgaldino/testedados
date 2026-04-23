@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências 36</title>
+<title>Registro de Ocorrências 37</title>
 
 <style>
   body {
@@ -179,7 +179,7 @@ alunoSelect.addEventListener("change", function(){
 });
 
 // ============================
-// ENVIO (CORRIGIDO WHATSAPP)
+// ENVIO (WHATSAPP CORRIGIDO)
 // ============================
 function enviar() {
 
@@ -234,36 +234,32 @@ function enviar() {
 
     alert("✅ Ocorrência registrada com sucesso!");
 
-    setTimeout(() => {
+    const link = data.whatsapp;
+    const match = link.match(/wa\.me\/(\d+)\?text=(.*)/);
 
-      alert("📲 Abrindo WhatsApp...");
+    let finalUrl = link;
 
-      const link = data.whatsapp;
-      const match = link.match(/wa\.me\/(\d+)\?text=(.*)/);
+    if (match) {
 
-      if (match) {
+      const phone = match[1];
+      const text = match[2];
 
-        const phone = match[1];
-        const text = match[2];
+      const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
+      const webUrl = link;
 
-        const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
-        const webUrl = link;
+      // 🔥 abre direto no app (SEM window.open)
+      finalUrl = appUrl;
 
-        // 🔥 abre direto (SEM window.open)
-        window.location.href = appUrl;
+      // fallback automático
+      setTimeout(() => {
+        window.location.href = webUrl;
+      }, 800);
+    }
 
-        // fallback seguro
-        setTimeout(() => {
-          window.location.href = webUrl;
-        }, 1500);
+    // 🚀 execução imediata (melhor compatibilidade Android)
+    window.location.href = finalUrl;
 
-      } else {
-        window.location.href = link;
-      }
-
-      setTimeout(() => location.reload(), 1000);
-
-    }, 500);
+    setTimeout(() => location.reload(), 1000);
 
   })
   .catch(err => {
