@@ -2,180 +2,59 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Editar Alunos</title>
+<title>Editar Alunos 34</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
-}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
 
 body {
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
-  padding: 30px;
-  color: #1f2937;
+  background: linear-gradient(135deg,#eef2ff,#f8fafc);
+  padding:30px;
 }
 
 .container {
-  max-width: 750px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  max-width:600px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-}
+h2 { text-align:center; margin-bottom:20px; }
 
-.search-box {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
+.search-box { display:flex; gap:10px; margin-bottom:15px; }
 
 input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  transition: 0.2s;
-  font-size: 14px;
-}
-
-input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
 
 button {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: 0.2s;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
 }
 
-button:hover {
-  transform: translateY(-1px);
-}
+.btn-primary { background:#6366f1; color:#fff; }
+.btn-success { background:#10b981; color:#fff; }
 
-.btn-primary {
-  background: #6366f1;
-  color: white;
-}
+button:disabled { opacity:0.6; cursor:not-allowed; }
 
-.btn-primary:hover {
-  background: #4f46e5;
-}
+.msg { margin-bottom:10px; text-align:center; font-weight:500; }
 
-.btn-success {
-  background: #10b981;
-  color: white;
-}
-
-.btn-success:hover {
-  background: #059669;
-}
-
-label {
-  font-size: 13px;
-  font-weight: 500;
-  margin-top: 5px;
-}
-
-.mensagem {
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  display: none;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.mensagem.sucesso { background: #d1fae5; color: #065f46; }
-.mensagem.erro { background: #fee2e2; color: #991b1b; }
-
-.debug {
-  background: #f3f4f6;
-  padding: 12px;
-  margin-top: 15px;
-  border-radius: 10px;
-  font-family: monospace;
-  font-size: 12px;
-  white-space: pre-wrap;
-}
-
-.foto-aluno {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  border: 2px solid #e5e7eb;
-  margin-bottom: 10px;
-}
-
-.sem-foto {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: #ef4444;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.popup {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.9);
-  justify-content: center;
-  align-items: center;
-}
-
-.popup img {
-  max-width: 90vw;
-  max-height: 90vh;
-  object-fit: contain;
-  border-radius: 12px;
-}
-
-.fechar {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  color: white;
-  font-size: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.fechar:hover { opacity: 1; }
-
-@media (max-width: 600px) {
-  .search-box {
-    flex-direction: column;
-  }
+.foto {
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+  margin-bottom:10px;
+  display:none;
 }
 </style>
 </head>
@@ -190,158 +69,126 @@ label {
     <button class="btn-primary" onclick="buscar()">Buscar</button>
   </div>
 
-  <div id="mensagem" class="mensagem"></div>
+  <div id="msg" class="msg"></div>
 
-  <div id="formulario">
-    <label>RA</label>
-    <input type="text" id="ra" disabled>
+  <img id="foto" class="foto">
 
-    <label>Nome</label>
-    <input type="text" id="nome">
+  <input type="text" id="ra" disabled placeholder="RA">
+  <input type="text" id="nome" placeholder="Nome">
+  <input type="date" id="nascimento">
+  <input type="text" id="fotoInput" placeholder="Link ou ID da foto">
+  <input type="text" id="sala" placeholder="Sala">
+  <input type="text" id="tutor" placeholder="Tutor">
+  <input type="text" id="eletiva1" placeholder="Eletiva 1">
+  <input type="text" id="eletiva2" placeholder="Eletiva 2">
 
-    <label>Data de Nascimento</label>
-    <input type="date" id="nascimento">
-
-    <label>Foto</label>
-    <div id="foto-container">
-      <img id="fotoAluno" class="foto-aluno" onclick="abrirPopupFoto()" style="display:none;">
-      <div id="semFoto" class="sem-foto" style="display:none;">❌</div>
-    </div>
-
-    <input type="text" id="foto" placeholder="ID do Google Drive">
-
-    <label>Sala</label>
-    <input type="text" id="sala">
-
-    <label>Tutor</label>
-    <input type="text" id="tutor">
-
-    <label>Eletiva 1° Semestre</label>
-    <input type="text" id="eletiva1">
-
-    <label>Eletiva 2° Semestre</label>
-    <input type="text" id="eletiva2">
-
-    <button class="btn-success" onclick="salvar()">💾 Salvar Alterações</button>
-  </div>
-
-  <div class="debug" id="debug">⚠️ Nenhum aluno carregado ainda</div>
-</div>
-
-<div id="popup" class="popup" onclick="fecharPopup(event)">
-  <span class="fechar" onclick="fecharPopup(event)">×</span>
-  <img id="imgPopup">
+  <button id="btnSalvar" class="btn-success" onclick="salvar()" disabled>Salvar</button>
 </div>
 
 <script>
-const url = "https://script.google.com/macros/s/AKfycbxxbE3LiV3p2hPIegaqyqadlOzUqCwWkJDRHbKhkcR7sTyWX6VqWZ-5m577AB1ictRYVg/exec";
+const URL = "https://script.google.com/macros/s/AKfycbz5f3Y5PVN7fVtdOhBMcCsz5anSCLsJPm1rC-5LX1LLlH1rIxKgH96FkncUyzsLCVD0Mg/exec";
 
-let dados = [];
 let alunoAtual = null;
 
-fetch(url)
-  .then(res => res.json())
-  .then(data => {
-    dados = data;
-    document.getElementById('debug').innerText = "✅ Dados carregados:\n" + JSON.stringify(dados, null, 2);
-  });
+const msg = document.getElementById("msg");
+const btn = document.getElementById("btnSalvar");
 
-function montarFoto(id) {
-  if (!id) return null;
-  id = String(id).trim();
-  if (id.length < 10) return null;
-  return "https://lh3.googleusercontent.com/d/" + id;
+function montarFoto(valor){
+  if(!valor) return null;
+  valor = valor.trim();
+
+  if(valor.includes("http")) return valor;
+
+  return "https://lh3.googleusercontent.com/d/" + valor;
 }
 
-function buscar() {
-  const valor = document.getElementById('busca').value.toString().trim().toLowerCase();
-  alunoAtual = dados.find(a => {
-    const raStr = (a.ra || "").toString().trim().toLowerCase();
-    const nomeStr = (a.nome || "").toString().trim().toLowerCase();
-    return raStr === valor || nomeStr === valor;
-  });
-
-  const debug = document.getElementById('debug');
-  const msg = document.getElementById('mensagem');
-  msg.style.display = 'none';
-
-  if (!alunoAtual) {
-    debug.innerText = "❌ Aluno não encontrado";
-    ['ra','nome','nascimento','foto','sala','tutor','eletiva1','eletiva2'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('fotoAluno').style.display = 'none';
-    document.getElementById('semFoto').style.display = 'none';
-    alunoAtual = null;
+async function buscar(){
+  const valor = document.getElementById("busca").value.trim();
+  if(!valor){
+    msg.innerHTML = "⚠️ Digite algo para buscar";
     return;
   }
 
-  document.getElementById('ra').value = alunoAtual.ra;
-  document.getElementById('nome').value = alunoAtual.nome || "";
-  document.getElementById('nascimento').value = alunoAtual.nascimento ? alunoAtual.nascimento.split('T')[0] : "";
-  document.getElementById('foto').value = alunoAtual.foto || "";
-  document.getElementById('sala').value = alunoAtual.sala || "";
-  document.getElementById('tutor').value = alunoAtual.tutor || "";
-  document.getElementById('eletiva1').value = alunoAtual.eletiva1 || "";
-  document.getElementById('eletiva2').value = alunoAtual.eletiva2 || "";
+  msg.innerHTML = "⏳ Buscando...";
+  btn.disabled = true;
 
-  const src = montarFoto(alunoAtual.foto);
-  if (src) {
-    document.getElementById('fotoAluno').src = src;
-    document.getElementById('fotoAluno').style.display = 'block';
-    document.getElementById('semFoto').style.display = 'none';
-  } else {
-    document.getElementById('fotoAluno').style.display = 'none';
-    document.getElementById('semFoto').style.display = 'flex';
+  try{
+    const res = await fetch(URL);
+    const dados = await res.json();
+
+    alunoAtual = dados.find(a =>
+      (a.ra+"").includes(valor) ||
+      (a.nome || "").toLowerCase().includes(valor.toLowerCase())
+    );
+
+    if(!alunoAtual){
+      msg.innerHTML = "❌ Nenhum aluno encontrado";
+      return;
+    }
+
+    msg.innerHTML = "✅ Aluno encontrado";
+
+    ra.value = alunoAtual.ra;
+    nome.value = alunoAtual.nome || "";
+    nascimento.value = alunoAtual.nascimento ? alunoAtual.nascimento.split("T")[0] : "";
+    fotoInput.value = alunoAtual.foto || "";
+    sala.value = alunoAtual.sala || "";
+    tutor.value = alunoAtual.tutor || "";
+    eletiva1.value = alunoAtual.eletiva1 || "";
+    eletiva2.value = alunoAtual.eletiva2 || "";
+
+    const src = montarFoto(alunoAtual.foto);
+    if(src){
+      foto.src = src;
+      foto.style.display = "block";
+    } else {
+      foto.style.display = "none";
+    }
+
+    btn.disabled = false;
+
+  }catch(e){
+    msg.innerHTML = "❌ Erro ao buscar";
+  }
+}
+
+async function salvar(){
+  if(!alunoAtual){
+    msg.innerHTML = "❌ Busque um aluno primeiro";
+    return;
   }
 
-  debug.innerText = "✅ Aluno carregado para edição:\n" + JSON.stringify(alunoAtual, null, 2);
-}
+  msg.innerHTML = "⏳ Salvando...";
+  btn.disabled = true;
 
-function salvar() {
-  if (!alunoAtual) return;
-
-  const postData = {
-    ra: document.getElementById('ra').value,
-    nome: document.getElementById('nome').value,
-    nascimento: document.getElementById('nascimento').value,
-    foto: document.getElementById('foto').value,
-    sala: document.getElementById('sala').value,
-    tutor: document.getElementById('tutor').value,
-    eletiva1: document.getElementById('eletiva1').value,
-    eletiva2: document.getElementById('eletiva2').value
+  const data = {
+    ra: ra.value,
+    nome: nome.value,
+    nascimento: nascimento.value,
+    foto: fotoInput.value,
+    sala: sala.value,
+    tutor: tutor.value,
+    eletiva1: eletiva1.value,
+    eletiva2: eletiva2.value
   };
 
-  const msg = document.getElementById('mensagem');
-  msg.style.display = 'block';
+  try{
+    const res = await fetch(URL,{
+      method:"POST",
+      body: JSON.stringify(data)
+    });
 
-  fetch(url, {
-    method: "POST",
-    body: JSON.stringify(postData)
-  })
-  .then(res => res.text())
-  .then(resp => {
-    msg.className = 'mensagem sucesso';
-    msg.innerText = "✅ Alteração enviada com sucesso!";
-    document.getElementById('debug').innerText = "POST enviado:\n" + JSON.stringify(postData, null, 2) + "\n\nResposta do servidor:\n" + resp;
-    buscar();
-  })
-  .catch(err => {
-    msg.className = 'mensagem erro';
-    msg.innerText = "❌ Erro ao salvar alterações!";
-    document.getElementById('debug').innerText = "Erro:\n" + err;
-  });
-}
+    const json = await res.json();
 
-function abrirPopupFoto() {
-  const fotoId = document.getElementById('foto').value;
-  const src = montarFoto(fotoId);
-  if (!src) return;
-  document.getElementById('imgPopup').src = src;
-  document.getElementById('popup').style.display = 'flex';
-}
+    msg.innerHTML = json.acao === "atualizado"
+      ? "✅ Alterações salvas!"
+      : "⚠️ Registro criado";
 
-function fecharPopup(e) {
-  if (e.target.tagName === "IMG") return;
-  document.getElementById('popup').style.display = 'none';
+  }catch(e){
+    msg.innerHTML = "❌ Erro ao salvar";
+  }
+
+  btn.disabled = false;
 }
 </script>
 
