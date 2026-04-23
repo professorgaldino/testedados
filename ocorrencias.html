@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências 35</title>
+<title>Registro de Ocorrências 36</title>
 
 <style>
   body {
@@ -116,7 +116,9 @@ const salaSelect = document.getElementById("salaSelect");
 const alunoSelect = document.getElementById("alunoSelect");
 const botao = document.getElementById("btnEnviar");
 
-// CACHE DE ALUNOS
+// ============================
+// CACHE
+// ============================
 function carregarAlunos() {
   const cache = localStorage.getItem(CACHE_KEY);
   const cacheTime = localStorage.getItem(CACHE_KEY + "_time");
@@ -177,7 +179,7 @@ alunoSelect.addEventListener("change", function(){
 });
 
 // ============================
-// ENVIO (AJUSTADO WHATSAPP)
+// ENVIO (CORRIGIDO WHATSAPP)
 // ============================
 function enviar() {
 
@@ -202,8 +204,6 @@ function enviar() {
   botao.disabled = true;
   botao.innerText = "Enviando...";
 
-  const abaWhats = window.open("", "_blank");
-
   const [ano, mes, dia] = dataFato.split("-");
   const dataFormatada = `${dia}/${mes}/${ano}`;
 
@@ -225,12 +225,10 @@ function enviar() {
 
     if (data.status === "duplicado") {
       alert("⚠️ Essa ocorrência já foi registrada anteriormente.");
-      abaWhats.close();
       return;
     }
 
     if (data.status !== "ok") {
-      abaWhats.close();
       throw new Error("Erro no servidor");
     }
 
@@ -241,7 +239,6 @@ function enviar() {
       alert("📲 Abrindo WhatsApp...");
 
       const link = data.whatsapp;
-
       const match = link.match(/wa\.me\/(\d+)\?text=(.*)/);
 
       if (match) {
@@ -252,16 +249,16 @@ function enviar() {
         const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
         const webUrl = link;
 
-        // tenta abrir app
-        abaWhats.location.href = appUrl;
+        // 🔥 abre direto (SEM window.open)
+        window.location.href = appUrl;
 
-        // fallback
+        // fallback seguro
         setTimeout(() => {
-          abaWhats.location.href = webUrl;
-        }, 1200);
+          window.location.href = webUrl;
+        }, 1500);
 
       } else {
-        abaWhats.location.href = link;
+        window.location.href = link;
       }
 
       setTimeout(() => location.reload(), 1000);
@@ -271,7 +268,6 @@ function enviar() {
   })
   .catch(err => {
     alert("Erro ao enviar: " + err.message);
-    abaWhats.close();
   })
   .finally(() => {
     enviando = false;
