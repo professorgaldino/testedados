@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências 39</title>
+<title>Registro de Ocorrências 38</title>
 
 <style>
   body {
@@ -116,7 +116,19 @@ const salaSelect = document.getElementById("salaSelect");
 const alunoSelect = document.getElementById("alunoSelect");
 const botao = document.getElementById("btnEnviar");
 
+// ============================
+// CORREÇÃO DE ACENTUAÇÃO
+// ============================
+function corrigirTexto(msg) {
+  return msg
+    .replace(/OCORRENCIA/g, "OCORRÊNCIA")
+    .replace(/Descricao/g, "Descrição")
+    .replace(/Acao/g, "Ação");
+}
+
+// ============================
 // CACHE
+// ============================
 function carregarAlunos() {
   const cache = localStorage.getItem(CACHE_KEY);
   const cacheTime = localStorage.getItem(CACHE_KEY + "_time");
@@ -176,7 +188,9 @@ alunoSelect.addEventListener("change", function(){
   document.getElementById("ra").value = selected.value || "";
 });
 
+// ============================
 // ENVIO
+// ============================
 function enviar() {
 
   if (enviando) return;
@@ -229,21 +243,23 @@ function enviar() {
     }
 
     const link = data.whatsapp;
-    const match = link.match(/wa\.me\/(\d+)\?text=(.*)/);
+
+    // 🔥 REGEX CORRIGIDO (não pega lixo)
+    const match = link.match(/wa\.me\/(\d+)\?text=([^&]+)/);
 
     let finalUrl = link;
 
     if (match) {
 
       const phone = match[1];
-      const text = match[2];
+      let text = match[2];
 
-      // 🔥 CORREÇÃO DE ACENTUAÇÃO
-      const textDecodificado = decodeURIComponent(text);
-      const textFinal = encodeURIComponent(textDecodificado);
+      text = decodeURIComponent(text);
+      text = corrigirTexto(text);
+      text = encodeURIComponent(text);
 
-      const appUrl = `whatsapp://send?phone=${phone}&text=${textFinal}`;
-      const webUrl = `https://wa.me/${phone}?text=${textFinal}`;
+      const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
+      const webUrl = `https://wa.me/${phone}?text=${text}`;
 
       finalUrl = appUrl;
 
