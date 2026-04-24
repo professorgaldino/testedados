@@ -57,6 +57,26 @@ button:disabled {
   text-align: center;
   margin-top: 10px;
   font-weight: 500;
+  min-height: 20px;
+}
+
+.msg.success { color: #16a34a; }
+.msg.error { color: #dc2626; }
+.msg.warn { color: #d97706; }
+
+.loader {
+  border: 3px solid #eee;
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
 </head>
@@ -87,65 +107,110 @@ const form = document.getElementById("form");
 const msg = document.getElementById("msg");
 const btn = document.getElementById("btn");
 
+const raInput = document.getElementById("ra");
+const nome = document.getElementById("nome");
+const nascimento = document.getElementById("nascimento");
+const foto = document.getElementById("foto");
+const sala = document.getElementById("sala");
+const tutor = document.getElementById("tutor");
+const eletiva1 = document.getElementById("eletiva1");
+const eletiva2 = document.getElementById("eletiva2");
+
 const URL = "https://script.google.com/macros/s/AKfycbz-lEHgUGtIGgnRcKu4mJ_i0w1D2NTVgT1n_p_id3hRKe5GC3GH-9AltgZiRHPqF6y4cg/exec";
 
-document.getElementById("ra").addEventListener("blur", async () => {
-  const ra = document.getElementById("ra").value;
+// ===========================
+// FETCH COM TIMEOUT
+// ===========================
+function fetchComTimeout(url, options = {}, tempo = 10000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), tempo);
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal
+  }).finally(() => clearTimeout(id));
+}
+
+// ===========================
+// MENSAGEM
+// ===========================
+function setMsg(texto, tipo = "") {
+  msg.className = "msg " + tipo;
+  msg.innerHTML = texto;
+}
+
+// ===========================
+// DEBOUNCE RA
+// ===========================
+let debounce;
+raInput.addEventListener("input", () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(verificarRA, 600);
+});
+
+async function verificarRA() {
+  const ra = raInput.value.trim();
   if (!ra) return;
 
-  msg.innerHTML = "🔍 Verificando RA...";
+  setMsg(`<span class="loader"></span>Verificando RA...`);
 
   try {
-    const res = await fetch(URL + "?ra=" + ra);
+    const res = await fetchComTimeout(URL + "?ra=" + encodeURIComponent(ra), {}, 8000);
     const data = await res.json();
 
     if (data.existe) {
-      msg.innerHTML = "⚠️ RA já cadastrado. Será atualizado.";
+      setMsg("⚠️ RA já cadastrado. Será atualizado.", "warn");
     } else {
-      msg.innerHTML = "✅ RA disponível";
+      setMsg("✅ RA disponível", "success");
     }
   } catch {
-    msg.innerHTML = "";
+    setMsg("❌ Falha ao verificar RA", "error");
   }
-});
+}
 
+// ===========================
+// SUBMIT
+// ===========================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  msg.innerHTML = "⏳ Salvando...";
   btn.disabled = true;
-  btn.innerText = "Salvando...";
+  btn.innerHTML = `<span class="loader"></span>Salvando...`;
+  setMsg("Enviando dados...");
 
   const data = {
-    ra: ra.value,
-    nome: nome.value,
+    ra: raInput.value.trim(),
+    nome: nome.value.trim(),
     nascimento: nascimento.value,
-    foto: foto.value,
-    sala: sala.value,
-    tutor: tutor.value,
-    eletiva1: eletiva1.value,
-    eletiva2: eletiva2.value
+    foto: foto.value.trim(),
+    sala: sala.value.trim(),
+    tutor: tutor.value.trim(),
+    eletiva1: eletiva1.value.trim(),
+    eletiva2: eletiva2.value.trim()
   };
 
   try {
-    const res = await fetch(URL, {
+    const res = await fetchComTimeout(URL, {
       method: "POST",
       body: JSON.stringify(data)
-    });
+    }, 15000);
 
     const json = await res.json();
 
     if (json.acao === "criado") {
-      msg.innerHTML = "✅ Aluno cadastrado!";
+      setMsg("✅ Aluno cadastrado com sucesso!", "success");
     } else {
-      msg.innerHTML = "⚠️ Aluno atualizado!";
+      setMsg("⚠️ Aluno atualizado com sucesso!", "warn");
     }
 
     form.reset();
 
   } catch (error) {
-    console.error(error);
-    msg.innerHTML = "❌ Erro ao salvar!";
+    if (error.name === "AbortError") {
+      setMsg("⏱️ Tempo de resposta excedido. Tente novamente.", "error");
+    } else {
+      setMsg("❌ Erro ao salvar dados!", "error");
+    }
   }
 
   btn.disabled = false;
