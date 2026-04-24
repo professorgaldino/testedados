@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Registro de Ocorrências 38</title>
+<title>Registro de Ocorrências 39</title>
 
 <style>
   body {
@@ -67,20 +67,20 @@
 
 <div class="container">
   <h2>Registro de Ocorrências</h2>
-  
+
   <label>Selecione a Sala</label>
   <select id="salaSelect">
     <option>Carregando salas...</option>
   </select>
-  
+
   <label>Selecione o Aluno</label>
   <select id="alunoSelect">
     <option value="">Escolha um aluno</option>
   </select>
-  
+
   <label>Tutor do Aluno</label>
   <input type="text" id="tutor" readonly>
-  
+
   <label>RA do Aluno</label>
   <input type="text" id="ra" readonly>
 
@@ -92,13 +92,13 @@
 
   <label>Nome do Professor</label>
   <input type="text" id="professor">
-  
+
   <label>Descrição da Ocorrência</label>
   <textarea id="descricao" rows="4"></textarea>
-  
+
   <label>Ação Tomada</label>
   <textarea id="acao" rows="2"></textarea>
-  
+
   <button id="btnEnviar" onclick="enviar()">Enviar Ocorrência</button>
 </div>
 
@@ -116,9 +116,7 @@ const salaSelect = document.getElementById("salaSelect");
 const alunoSelect = document.getElementById("alunoSelect");
 const botao = document.getElementById("btnEnviar");
 
-// ============================
 // CACHE
-// ============================
 function carregarAlunos() {
   const cache = localStorage.getItem(CACHE_KEY);
   const cacheTime = localStorage.getItem(CACHE_KEY + "_time");
@@ -178,9 +176,7 @@ alunoSelect.addEventListener("change", function(){
   document.getElementById("ra").value = selected.value || "";
 });
 
-// ============================
-// ENVIO (SEM ALERT + AUTO WHATSAPP)
-// ============================
+// ENVIO
 function enviar() {
 
   if (enviando) return;
@@ -242,19 +238,20 @@ function enviar() {
       const phone = match[1];
       const text = match[2];
 
-      const appUrl = `whatsapp://send?phone=${phone}&text=${text}`;
-      const webUrl = link;
+      // 🔥 CORREÇÃO DE ACENTUAÇÃO
+      const textDecodificado = decodeURIComponent(text);
+      const textFinal = encodeURIComponent(textDecodificado);
 
-      // 🔥 abre direto no app (sem popup, sem clique extra)
+      const appUrl = `whatsapp://send?phone=${phone}&text=${textFinal}`;
+      const webUrl = `https://wa.me/${phone}?text=${textFinal}`;
+
       finalUrl = appUrl;
 
-      // fallback automático
       setTimeout(() => {
         window.location.href = webUrl;
       }, 800);
     }
 
-    // 🚀 execução imediata
     window.location.href = finalUrl;
 
     setTimeout(() => location.reload(), 1000);
